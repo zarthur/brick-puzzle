@@ -3,8 +3,26 @@
 
 # Xcode
 DerivedData/
+Build/
 build/
+*.xcresult
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
 *.xcuserstate
+xcuserdata/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
@@ -12,14 +30,17 @@ build/
 # Swift Package Manager
 .build/
 .swiftpm/
-Package.resolved
 
-# App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
+# Dependency managers
+Pods/
+Carthage/Build/
 
 # Local environment
 .env
 .env.*
 
+# Editor and logs
+*.log
+*.swp
+.idea/
+.vscode/
