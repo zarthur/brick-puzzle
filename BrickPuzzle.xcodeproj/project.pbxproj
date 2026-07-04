@@ -21,6 +21,9 @@
 		300000000000000000000001 /* LevelBundleLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000101 /* LevelBundleLoader.swift */; };
 		300000000000000000000002 /* LevelBundleLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000102 /* LevelBundleLoaderTests.swift */; };
 		300000000000000000000003 /* Levels in Resources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000103 /* Levels */; };
+		400000000000000000000001 /* ReplayValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400000000000000000000101 /* ReplayValidation.swift */; };
+		400000000000000000000002 /* ReplayRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400000000000000000000102 /* ReplayRunnerTests.swift */; };
+		400000000000000000000003 /* Replays in Resources */ = {isa = PBXBuildFile; fileRef = 400000000000000000000103 /* Replays */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +62,9 @@
 		300000000000000000000101 /* LevelBundleLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelBundleLoader.swift; sourceTree = "<group>"; };
 		300000000000000000000102 /* LevelBundleLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelBundleLoaderTests.swift; sourceTree = "<group>"; };
 		300000000000000000000103 /* Levels */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Levels; sourceTree = "<group>"; };
+		400000000000000000000101 /* ReplayValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayValidation.swift; sourceTree = "<group>"; };
+		400000000000000000000102 /* ReplayRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayRunnerTests.swift; sourceTree = "<group>"; };
+		400000000000000000000103 /* Replays */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Replays; sourceTree = "<group>"; };
 		100000000000000000000501 /* BrickPuzzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BrickPuzzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000502 /* BrickPuzzleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickPuzzleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000503 /* BrickPuzzleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickPuzzleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -109,6 +115,7 @@
 				100000000000000000000704 /* Game */,
 				300000000000000000000701 /* Levels */,
 				100000000000000000000705 /* Models */,
+				400000000000000000000701 /* Replays */,
 				100000000000000000000706 /* Resources */,
 			);
 			path = BrickPuzzle;
@@ -157,11 +164,20 @@
 			path = Levels;
 			sourceTree = "<group>";
 		};
+		400000000000000000000701 /* Replays */ = {
+			isa = PBXGroup;
+			children = (
+				400000000000000000000101 /* ReplayValidation.swift */,
+			);
+			path = Replays;
+			sourceTree = "<group>";
+		};
 		100000000000000000000706 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				100000000000000000000107 /* Assets.xcassets */,
 				300000000000000000000103 /* Levels */,
+				400000000000000000000103 /* Replays */,
 				100000000000000000000110 /* Preview Content */,
 			);
 			path = Resources;
@@ -173,6 +189,7 @@
 				100000000000000000000108 /* LevelDefinitionTests.swift */,
 				100000000000000000001102 /* GameStateTests.swift */,
 				300000000000000000000102 /* LevelBundleLoaderTests.swift */,
+				400000000000000000000102 /* ReplayRunnerTests.swift */,
 			);
 			path = BrickPuzzleTests;
 			sourceTree = "<group>";
@@ -319,6 +336,7 @@
 			files = (
 				100000000000000000000007 /* Assets.xcassets in Resources */,
 				300000000000000000000003 /* Levels in Resources */,
+				400000000000000000000003 /* Replays in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,6 +369,7 @@
 				100000000000000000000006 /* PowerupDefinition.swift in Sources */,
 				200000000000000000000001 /* GameState.swift in Sources */,
 				300000000000000000000001 /* LevelBundleLoader.swift in Sources */,
+				400000000000000000000001 /* ReplayValidation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,6 +380,7 @@
 				100000000000000000000008 /* LevelDefinitionTests.swift in Sources */,
 				200000000000000000000002 /* GameStateTests.swift in Sources */,
 				300000000000000000000002 /* LevelBundleLoaderTests.swift in Sources */,
+				400000000000000000000002 /* ReplayRunnerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

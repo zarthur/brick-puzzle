@@ -14,6 +14,8 @@ struct GameStateTests {
         #expect(snapshot.bricks.count == level.bricks.count)
         #expect(snapshot.missionBrickCount == 1)
         #expect(snapshot.turnPhase == .idle)
+        #expect(snapshot.shotCount == 0)
+        #expect(snapshot.usedPowerups.isEmpty)
         #expect(snapshot.objective == .clearMissionBricks)
     }
 }

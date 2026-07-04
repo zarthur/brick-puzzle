@@ -1,0 +1,17 @@
+{
+  "levelID": "prototype-001",
+  "selectedPowerups": [],
+  "shots": [
+    {
+      "aimAngleDegrees": 65,
+      "usedPowerups": [],
+      "destroyedBrickIDs": [
+        "0-3-mission"
+      ]
+    }
+  ],
+  "expectedOutcome": {
+    "completed": true,
+    "stars": 3
+  }
+}

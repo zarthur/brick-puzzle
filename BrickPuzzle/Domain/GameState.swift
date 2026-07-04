@@ -53,6 +53,8 @@ struct GameSnapshot: Codable, Hashable {
     let boardSize: BoardSize
     let objective: LevelObjective
     let turnPhase: TurnPhase
+    let shotCount: Int
+    let usedPowerups: [PowerupDefinition]
     let bricks: [BrickState]
     let balls: [BallState]
 
@@ -75,8 +77,40 @@ struct GameState: Codable, Hashable {
             boardSize: BoardSize(columns: level.columns, rows: level.rows),
             objective: .clearMissionBricks,
             turnPhase: .idle,
+            shotCount: 0,
+            usedPowerups: [],
             bricks: level.bricks.map(BrickState.init(definition:)),
             balls: []
+        )
+    }
+
+    mutating func applyPlaceholderShot(
+        destroyedBrickIDs: [String],
+        usedPowerups: [PowerupDefinition] = []
+    ) {
+        let destroyedIDs = Set(destroyedBrickIDs)
+        var bricks = snapshot.bricks
+
+        for index in bricks.indices where destroyedIDs.contains(bricks[index].id) {
+            bricks[index].isDestroyed = true
+        }
+
+        let allUsedPowerups = Set(snapshot.usedPowerups + usedPowerups)
+            .sorted { $0.rawValue < $1.rawValue }
+        let hasRemainingMissionBricks = bricks.contains { brick in
+            brick.kind == .mission && !brick.isDestroyed
+        }
+
+        snapshot = GameSnapshot(
+            levelID: snapshot.levelID,
+            levelTitle: snapshot.levelTitle,
+            boardSize: snapshot.boardSize,
+            objective: snapshot.objective,
+            turnPhase: hasRemainingMissionBricks ? .idle : .won,
+            shotCount: snapshot.shotCount + 1,
+            usedPowerups: allUsedPowerups,
+            bricks: bricks,
+            balls: snapshot.balls
         )
     }
 }
