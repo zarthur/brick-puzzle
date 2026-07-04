@@ -1,23 +1,26 @@
-import XCTest
+import Testing
 @testable import BrickPuzzle
 
-final class LevelDefinitionTests: XCTestCase {
-    func testPrototypeLevelDefinesLoadoutChoices() {
+@Suite("Level definitions")
+struct LevelDefinitionTests {
+    @Test("Prototype level defines loadout choices")
+    func prototypeLevelDefinesLoadoutChoices() {
         let level = LevelDefinition.prototype
 
-        XCTAssertEqual(level.maxPowerupLoadoutSize, 2)
-        XCTAssertGreaterThan(level.availablePowerups.count, level.maxPowerupLoadoutSize)
+        #expect(level.maxPowerupLoadoutSize == 2)
+        #expect(level.availablePowerups.count > level.maxPowerupLoadoutSize)
     }
 
-    func testLoadoutRejectsUnavailablePowerup() {
+    @Test("Loadout rejects unavailable powerup")
+    func loadoutRejectsUnavailablePowerup() {
         let level = LevelDefinition.prototype
         let loadout = PowerupLoadout(selectedPowerups: [.extraBalls, .gravityShift])
 
-        XCTAssertFalse(loadout.isValid(for: level))
+        #expect(!loadout.isValid(for: level))
     }
 
-    func testThreeStarPrototypeRequiresNoPowerups() {
-        XCTAssertTrue(LevelDefinition.prototype.starRules.threeStarRequiresNoPowerups)
+    @Test("Three star prototype requires no powerups")
+    func threeStarPrototypeRequiresNoPowerups() {
+        #expect(LevelDefinition.prototype.starRules.threeStarRequiresNoPowerups)
     }
 }
-
