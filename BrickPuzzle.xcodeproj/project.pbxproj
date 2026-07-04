@@ -16,6 +16,8 @@
 		100000000000000000000007 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000107 /* Assets.xcassets */; };
 		100000000000000000000008 /* LevelDefinitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000108 /* LevelDefinitionTests.swift */; };
 		100000000000000000000009 /* BrickPuzzleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000109 /* BrickPuzzleUITests.swift */; };
+		200000000000000000000001 /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000001101 /* GameState.swift */; };
+		200000000000000000000002 /* GameStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000001102 /* GameStateTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +51,8 @@
 		100000000000000000000111 /* product-plan.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "product-plan.md"; sourceTree = "<group>"; };
 		100000000000000000000112 /* research-sources.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "research-sources.md"; sourceTree = "<group>"; };
 		100000000000000000000113 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		100000000000000000001101 /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
+		100000000000000000001102 /* GameStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateTests.swift; sourceTree = "<group>"; };
 		100000000000000000000501 /* BrickPuzzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BrickPuzzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000502 /* BrickPuzzleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickPuzzleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000503 /* BrickPuzzleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickPuzzleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -95,6 +99,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000703 /* App */,
+				100000000000000000001701 /* Domain */,
 				100000000000000000000704 /* Game */,
 				100000000000000000000705 /* Models */,
 				100000000000000000000706 /* Resources */,
@@ -109,6 +114,14 @@
 				100000000000000000000102 /* AppRootView.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		100000000000000000001701 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000001101 /* GameState.swift */,
+			);
+			path = Domain;
 			sourceTree = "<group>";
 		};
 		100000000000000000000704 /* Game */ = {
@@ -142,6 +155,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000108 /* LevelDefinitionTests.swift */,
+				100000000000000000001102 /* GameStateTests.swift */,
 			);
 			path = BrickPuzzleTests;
 			sourceTree = "<group>";
@@ -317,6 +331,7 @@
 				100000000000000000000004 /* BrickPuzzleScene.swift in Sources */,
 				100000000000000000000005 /* LevelDefinition.swift in Sources */,
 				100000000000000000000006 /* PowerupDefinition.swift in Sources */,
+				200000000000000000000001 /* GameState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -325,6 +340,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				100000000000000000000008 /* LevelDefinitionTests.swift in Sources */,
+				200000000000000000000002 /* GameStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

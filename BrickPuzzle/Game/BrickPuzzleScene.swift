@@ -2,7 +2,7 @@ import SpriteKit
 import UIKit
 
 final class BrickPuzzleScene: SKScene {
-    private var level: LevelDefinition?
+    private var snapshot: GameSnapshot?
 
     override init(size: CGSize) {
         super.init(size: size)
@@ -17,7 +17,11 @@ final class BrickPuzzleScene: SKScene {
     }
 
     func configure(level: LevelDefinition) {
-        self.level = level
+        configure(snapshot: GameState(level: level).snapshot)
+    }
+
+    func configure(snapshot: GameSnapshot) {
+        self.snapshot = snapshot
         renderBoard()
     }
 
@@ -29,12 +33,12 @@ final class BrickPuzzleScene: SKScene {
     private func renderBoard() {
         removeAllChildren()
 
-        guard let level, size.width > 0, size.height > 0 else {
+        guard let snapshot, size.width > 0, size.height > 0 else {
             return
         }
 
-        let boardColumns = max(level.columns, 1)
-        let boardRows = max(level.rows, 1)
+        let boardColumns = max(snapshot.boardSize.columns, 1)
+        let boardRows = max(snapshot.boardSize.rows, 1)
         let horizontalInset: CGFloat = 24
         let topInset: CGFloat = 42
         let launcherHeight: CGFloat = 92
@@ -51,12 +55,12 @@ final class BrickPuzzleScene: SKScene {
             size: CGSize(width: boardWidth, height: boardHeight)
         )
 
-        for brick in level.bricks {
+        for brick in snapshot.activeBricks {
             renderBrick(brick, startX: startX, topY: topY, cellSize: cellSize)
         }
 
         renderLauncher(boardBottomY: topY - boardHeight)
-        renderLevelLabel(level)
+        renderLevelLabel(snapshot)
     }
 
     private func renderBoardBackground(origin: CGPoint, size: CGSize) {
@@ -68,9 +72,9 @@ final class BrickPuzzleScene: SKScene {
         addChild(board)
     }
 
-    private func renderBrick(_ brick: BrickDefinition, startX: CGFloat, topY: CGFloat, cellSize: CGFloat) {
-        let x = startX + CGFloat(brick.column) * cellSize + cellSize / 2
-        let y = topY - CGFloat(brick.row) * cellSize - cellSize / 2
+    private func renderBrick(_ brick: BrickState, startX: CGFloat, topY: CGFloat, cellSize: CGFloat) {
+        let x = startX + CGFloat(brick.coordinate.column) * cellSize + cellSize / 2
+        let y = topY - CGFloat(brick.coordinate.row) * cellSize - cellSize / 2
         let brickSize = CGSize(width: cellSize * 0.86, height: cellSize * 0.72)
 
         let node = SKShapeNode(rectOf: brickSize, cornerRadius: min(8, cellSize * 0.16))
@@ -109,8 +113,8 @@ final class BrickPuzzleScene: SKScene {
         addChild(aimLine)
     }
 
-    private func renderLevelLabel(_ level: LevelDefinition) {
-        let label = SKLabelNode(text: level.title)
+    private func renderLevelLabel(_ snapshot: GameSnapshot) {
+        let label = SKLabelNode(text: snapshot.levelTitle)
         label.fontName = "AvenirNext-DemiBold"
         label.fontSize = 16
         label.fontColor = UIColor.label
