@@ -24,6 +24,8 @@ The first playable target is a 10-level offline prototype. A build is considered
 - [BrickPuzzleUITests](BrickPuzzleUITests): UI tests.
 - [ProjectManagement](ProjectManagement): product and planning documents.
 
+Bundled level fixtures live in [BrickPuzzle/Resources/Levels](BrickPuzzle/Resources/Levels). Add prototype level JSON files there so the app, level loader, and replay validation tests use the same source data.
+
 ## Project Management Documents
 
 - [Product Plan](ProjectManagement/product-management/product-plan.md)

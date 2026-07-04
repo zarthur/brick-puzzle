@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AppRootView: View {
-    private let prototypeLevel = LevelDefinition.prototype
+    private let prototypeLevel = LevelBundleLoader.prototypeLevel()
 
     var body: some View {
         NavigationStack {
@@ -64,4 +64,3 @@ private struct PowerupLoadoutSummary: View {
 #Preview {
     AppRootView()
 }
-

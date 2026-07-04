@@ -1,0 +1,30 @@
+{
+  "id": "prototype-001",
+  "title": "Prototype Level",
+  "columns": 7,
+  "rows": 8,
+  "bricks": [
+    { "row": 0, "column": 2, "kind": "shield", "hitPoints": 3 },
+    { "row": 0, "column": 3, "kind": "mission", "hitPoints": 4 },
+    { "row": 0, "column": 4, "kind": "shield", "hitPoints": 3 },
+    { "row": 1, "column": 1, "kind": "standard", "hitPoints": 2 },
+    { "row": 1, "column": 3, "kind": "key", "hitPoints": 1 },
+    { "row": 1, "column": 5, "kind": "standard", "hitPoints": 2 },
+    { "row": 2, "column": 0, "kind": "bomb", "hitPoints": 1 },
+    { "row": 2, "column": 3, "kind": "standard", "hitPoints": 3 },
+    { "row": 2, "column": 6, "kind": "splitter", "hitPoints": 1 },
+    { "row": 3, "column": 2, "kind": "standard", "hitPoints": 2 },
+    { "row": 3, "column": 4, "kind": "standard", "hitPoints": 2 }
+  ],
+  "availablePowerups": [
+    "extraBalls",
+    "shieldBreaker",
+    "precisionGuide"
+  ],
+  "maxPowerupLoadoutSize": 2,
+  "starRules": {
+    "twoStarShotLimit": 4,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 3
+  }
+}
