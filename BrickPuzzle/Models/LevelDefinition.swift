@@ -164,7 +164,7 @@ extension LevelDefinition {
             BrickDefinition(id: "standard-lower-left", row: 3, column: 2, kind: .standard, hitPoints: 2),
             BrickDefinition(id: "standard-lower-right", row: 3, column: 4, kind: .standard, hitPoints: 2)
         ],
-        availablePowerups: [.extraBalls, .shieldBreaker, .precisionGuide],
+        availablePowerups: [.extraBalls, .shieldBreaker, .precisionGuide, .bomb, .rowClear],
         maxPowerupLoadoutSize: 2,
         starRules: StarRules(
             twoStarShotLimit: 4,

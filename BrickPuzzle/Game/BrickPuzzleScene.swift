@@ -6,6 +6,8 @@ final class BrickPuzzleScene: SKScene {
     private var activeTouch: UITouch?
     private var isAimCancelled = false
     private var isAnimatingShot = false
+    private var pendingTargetPowerup: PowerupDefinition?
+    private var onSnapshotChange: ((GameSnapshot, AttemptResult?) -> Void)?
 
     override init(size: CGSize) {
         super.init(size: size)
@@ -21,9 +23,33 @@ final class BrickPuzzleScene: SKScene {
         isUserInteractionEnabled = true
     }
 
-    func configure(level: LevelDefinition) {
-        gameState = GameState(level: level)
+    func configure(
+        level: LevelDefinition,
+        loadout: PowerupLoadout = .empty,
+        onSnapshotChange: ((GameSnapshot, AttemptResult?) -> Void)? = nil
+    ) {
+        self.onSnapshotChange = onSnapshotChange
+        gameState = try? GameState(level: level, loadout: loadout)
+        pendingTargetPowerup = nil
         renderSnapshot()
+        notifySnapshotChange()
+    }
+
+    func activatePowerup(_ powerup: PowerupDefinition) {
+        guard !isAnimatingShot, var state = gameState else { return }
+        if powerup == .bomb || powerup == .rowClear {
+            pendingTargetPowerup = powerup
+            renderSnapshot()
+            return
+        }
+        do {
+            _ = try state.activatePowerup(powerup)
+            gameState = state
+            renderSnapshot()
+            notifySnapshotChange()
+        } catch {
+            pendingTargetPowerup = nil
+        }
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -45,6 +71,24 @@ final class BrickPuzzleScene: SKScene {
 
         let viewport = viewport(for: state.snapshot.boardSize)
         let location = touch.location(in: self)
+        if let pendingTargetPowerup, viewport.boardRect.contains(location) {
+            let boardPoint = viewport.boardPoint(for: location)
+            let authoredRow = state.snapshot.boardSize.rows - 1 - Int(floor(boardPoint.y))
+            let coordinate = BoardCoordinate(
+                row: authoredRow,
+                column: Int(floor(boardPoint.x))
+            )
+            do {
+                _ = try state.activatePowerup(pendingTargetPowerup, target: coordinate)
+                gameState = state
+                self.pendingTargetPowerup = nil
+                renderSnapshot()
+                notifySnapshotChange()
+            } catch {
+                self.pendingTargetPowerup = nil
+            }
+            return
+        }
         let launcher = viewport.scenePoint(for: BoardGeometry(size: state.snapshot.boardSize).launcherPosition)
         let activationRadius = max(34, viewport.cellSize * 0.9)
         let beganOnLauncher = hypot(location.x - launcher.x, location.y - launcher.y) <= activationRadius
@@ -158,6 +202,18 @@ final class BrickPuzzleScene: SKScene {
         let viewport = viewport(for: snapshot.boardSize)
         let ballIDs = Set(resolution.frames.flatMap { $0.balls.map(\.id) }).sorted()
 
+        var previousBricks = resolution.frames[0].bricks
+        for (index, frame) in resolution.frames.dropFirst().enumerated() where frame.bricks != previousBricks {
+            let bricks = frame.bricks
+            run(.sequence([
+                .wait(forDuration: frame.elapsedTime),
+                .run { [weak self] in
+                    self?.renderPlaybackBricks(bricks, viewport: viewport)
+                }
+            ]), withKey: "brick-playback-\(index)")
+            previousBricks = bricks
+        }
+
         for ballID in ballIDs {
             let samples = resolution.frames.compactMap { frame -> (Double, BoardPoint)? in
                 guard let ball = frame.balls.first(where: { $0.id == ballID }) else { return nil }
@@ -195,6 +251,7 @@ final class BrickPuzzleScene: SKScene {
             self.isAnimatingShot = false
             self.renderSnapshot()
             self.renderEventFeedback(resolution.finalSnapshot.shotHistory.last?.events ?? [])
+            self.notifySnapshotChange()
         }
     }
 
@@ -262,7 +319,7 @@ final class BrickPuzzleScene: SKScene {
 
     private func renderBrick(_ brick: BrickState, viewport: BoardViewport) {
         let geometry = BoardGeometry(size: viewport.boardSize)
-        guard let bounds = geometry.brickBounds(at: brick.coordinate) else {
+        guard let bounds = geometry.drawnBrickBounds(at: brick.coordinate) else {
             return
         }
 
@@ -270,22 +327,29 @@ final class BrickPuzzleScene: SKScene {
             x: (bounds.minX + bounds.maxX) / 2,
             y: (bounds.minY + bounds.maxY) / 2
         ))
-        let brickSize = CGSize(width: viewport.cellSize * 0.86, height: viewport.cellSize * 0.72)
+        let brickSize = CGSize(
+            width: viewport.cellSize * CGFloat(bounds.maxX - bounds.minX),
+            height: viewport.cellSize * CGFloat(bounds.maxY - bounds.minY)
+        )
+        let container = SKNode()
+        container.name = "brick-\(brick.id)"
+        container.position = center
+        container.zPosition = 1
+        addChild(container)
+
         let node = SKShapeNode(rectOf: brickSize, cornerRadius: min(8, viewport.cellSize * 0.16))
-        node.position = center
         node.fillColor = brick.kind.color
         node.strokeColor = brick.isProtected ? .systemCyan : UIColor.white.withAlphaComponent(0.5)
         node.lineWidth = brick.kind == .mission || brick.isProtected ? 3 : 1
-        addChild(node)
+        container.addChild(node)
 
         let label = SKLabelNode(text: brick.kind == .standard ? "\(brick.hitPoints)" : "\(brick.kind.shortLabel) \(brick.hitPoints)")
         label.fontName = "AvenirNext-Bold"
         label.fontSize = max(11, viewport.cellSize * 0.24)
         label.fontColor = .white
         label.verticalAlignmentMode = .center
-        label.position = center
         label.zPosition = 2
-        addChild(label)
+        container.addChild(label)
 
         if brick.isLocked || brick.isProtected {
             let stateLabel = SKLabelNode(text: brick.isLocked ? "🔒" : "◇")
@@ -293,11 +357,20 @@ final class BrickPuzzleScene: SKScene {
             stateLabel.horizontalAlignmentMode = .right
             stateLabel.verticalAlignmentMode = .top
             stateLabel.position = CGPoint(
-                x: center.x + brickSize.width * 0.45,
-                y: center.y + brickSize.height * 0.45
+                x: brickSize.width * 0.45,
+                y: brickSize.height * 0.45
             )
             stateLabel.zPosition = 3
-            addChild(stateLabel)
+            container.addChild(stateLabel)
+        }
+    }
+
+    private func renderPlaybackBricks(_ bricks: [BrickState], viewport: BoardViewport) {
+        enumerateChildNodes(withName: "brick-*") { node, _ in
+            node.removeFromParent()
+        }
+        for brick in bricks where !brick.isDestroyed {
+            renderBrick(brick, viewport: viewport)
         }
     }
 
@@ -334,15 +407,67 @@ final class BrickPuzzleScene: SKScene {
         let launcher = viewport.scenePoint(for: BoardGeometry(size: snapshot.boardSize).launcherPosition)
         let path = CGMutablePath()
         path.move(to: launcher)
-        path.addLine(to: target)
+        let hasPrecisionGuide = snapshot.armedPowerups.contains(.precisionGuide)
+        if hasPrecisionGuide, isValid,
+           let preview = precisionGuidePreview(from: launcher, through: target, boardRect: viewport.boardRect) {
+            path.addLine(to: preview.impact)
+            path.addLine(to: preview.reflectedEnd)
+        } else {
+            path.addLine(to: target)
+        }
 
         let guide = SKShapeNode(path: path)
         guide.name = "aim-guide"
-        guide.strokeColor = isValid ? .systemTeal : .systemRed
-        guide.lineWidth = 3
+        guide.strokeColor = isValid ? (hasPrecisionGuide ? .systemYellow : .systemTeal) : .systemRed
+        guide.lineWidth = hasPrecisionGuide ? 5 : 3
         guide.lineCap = .round
         guide.zPosition = 9
         addChild(guide)
+    }
+
+    private func precisionGuidePreview(
+        from origin: CGPoint,
+        through target: CGPoint,
+        boardRect: CGRect
+    ) -> (impact: CGPoint, reflectedEnd: CGPoint)? {
+        let dx = target.x - origin.x
+        let dy = target.y - origin.y
+        let length = hypot(dx, dy)
+        guard length > 0 else { return nil }
+        let direction = CGVector(dx: dx / length, dy: dy / length)
+
+        var candidates: [(time: CGFloat, point: CGPoint, verticalWall: Bool)] = []
+        if direction.dx != 0 {
+            for x in [boardRect.minX, boardRect.maxX] {
+                let time = (x - origin.x) / direction.dx
+                let y = origin.y + direction.dy * time
+                if time > 0, boardRect.minY...boardRect.maxY ~= y {
+                    candidates.append((time, CGPoint(x: x, y: y), true))
+                }
+            }
+        }
+        if direction.dy != 0 {
+            for y in [boardRect.minY, boardRect.maxY] {
+                let time = (y - origin.y) / direction.dy
+                let x = origin.x + direction.dx * time
+                if time > 0, boardRect.minX...boardRect.maxX ~= x {
+                    candidates.append((time, CGPoint(x: x, y: y), false))
+                }
+            }
+        }
+        guard let exit = candidates.max(by: { $0.time < $1.time }) else { return nil }
+        let reflectedDirection = CGVector(
+            dx: exit.verticalWall ? -direction.dx : direction.dx,
+            dy: exit.verticalWall ? direction.dy : -direction.dy
+        )
+        let previewLength = min(boardRect.width, boardRect.height) * 0.3
+        return (
+            exit.point,
+            CGPoint(
+                x: exit.point.x + reflectedDirection.dx * previewLength,
+                y: exit.point.y + reflectedDirection.dy * previewLength
+            )
+        )
     }
 
     private func renderHeader(_ snapshot: GameSnapshot) {
@@ -369,8 +494,15 @@ final class BrickPuzzleScene: SKScene {
         let color: UIColor
         switch snapshot.turnPhase {
         case .idle:
-            text = "Touch and hold the field to aim"
-            color = .secondaryLabel
+            if let pendingTargetPowerup {
+                text = pendingTargetPowerup == .rowClear
+                    ? "Tap a row to clear"
+                    : "Tap a cell for the bomb"
+                color = .systemOrange
+            } else {
+                text = "Touch and hold the field to aim"
+                color = .secondaryLabel
+            }
         case .aiming:
             text = isAimCancelled ? "Release to cancel" : "Release to fire"
             color = isAimCancelled ? .systemRed : .systemTeal
@@ -397,6 +529,11 @@ final class BrickPuzzleScene: SKScene {
 
     private func viewport(for boardSize: BoardSize) -> BoardViewport {
         BoardViewport(sceneSize: size, boardSize: boardSize)
+    }
+
+    private func notifySnapshotChange() {
+        guard let gameState else { return }
+        onSnapshotChange?(gameState.snapshot, gameState.result)
     }
 }
 

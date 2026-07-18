@@ -64,7 +64,7 @@ struct ReplayRunner {
                 )
             }
 
-            var state = GameState(level: level)
+            var state = try GameState(level: level, loadout: loadout)
             let selectedPowerups = Set(replay.selectedPowerups)
             let brickIDs = Set(state.snapshot.bricks.map(\.id))
 
@@ -73,7 +73,7 @@ struct ReplayRunner {
                     return failureResult(
                         replay: replay,
                         shotIndex: index,
-                        actualOutcome: outcome(for: state.snapshot, level: level),
+                        actualOutcome: outcome(for: state),
                         reason: "Invalid aimAngleDegrees: \(shot.aimAngleDegrees)."
                     )
                 }
@@ -82,7 +82,7 @@ struct ReplayRunner {
                     return failureResult(
                         replay: replay,
                         shotIndex: index,
-                        actualOutcome: outcome(for: state.snapshot, level: level),
+                        actualOutcome: outcome(for: state),
                         reason: "Shot uses powerup not in selected loadout: \(unselectedPowerup.rawValue)."
                     )
                 }
@@ -91,7 +91,7 @@ struct ReplayRunner {
                     return failureResult(
                         replay: replay,
                         shotIndex: index,
-                        actualOutcome: outcome(for: state.snapshot, level: level),
+                        actualOutcome: outcome(for: state),
                         reason: "Shot references unknown brick id: \(unknownBrickID)."
                     )
                 }
@@ -103,7 +103,7 @@ struct ReplayRunner {
                 )
             }
 
-            let actualOutcome = outcome(for: state.snapshot, level: level)
+            let actualOutcome = outcome(for: state)
             guard actualOutcome.completed == replay.expectedOutcome.completed,
                   actualOutcome.stars == replay.expectedOutcome.stars else {
                 return failureResult(
@@ -131,25 +131,12 @@ struct ReplayRunner {
         }
     }
 
-    private func outcome(for snapshot: GameSnapshot, level: LevelDefinition) -> ReplayActualOutcome {
-        let completed = snapshot.turnPhase == .won
-        guard completed else {
+    private func outcome(for state: GameState) -> ReplayActualOutcome {
+        guard state.snapshot.turnPhase == .won,
+              let result = state.result else {
             return ReplayActualOutcome(completed: false, stars: 0)
         }
-
-        let satisfiesPowerupRequirement = !level.starRules.threeStarRequiresNoPowerups
-            || snapshot.usedPowerups.isEmpty
-
-        if satisfiesPowerupRequirement,
-           snapshot.shotCount <= level.starRules.threeStarShotLimit {
-            return ReplayActualOutcome(completed: true, stars: 3)
-        }
-
-        if snapshot.shotCount <= level.starRules.twoStarShotLimit {
-            return ReplayActualOutcome(completed: true, stars: 2)
-        }
-
-        return ReplayActualOutcome(completed: true, stars: 1)
+        return ReplayActualOutcome(completed: true, stars: result.stars.rawValue)
     }
 
     private func failureResult(

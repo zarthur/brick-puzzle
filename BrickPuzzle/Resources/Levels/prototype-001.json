@@ -19,7 +19,9 @@
   "availablePowerups": [
     "extraBalls",
     "shieldBreaker",
-    "precisionGuide"
+    "precisionGuide",
+    "bomb",
+    "rowClear"
   ],
   "maxPowerupLoadoutSize": 2,
   "objective": {

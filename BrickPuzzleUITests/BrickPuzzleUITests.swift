@@ -11,6 +11,10 @@ final class BrickPuzzleUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.staticTexts["Brick Puzzle"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["start-attempt"].waitForExistence(timeout: 3))
+        app.buttons["loadout-extraBalls"].tap()
+        app.buttons["start-attempt"].tap()
         XCTAssertTrue(app.otherElements["game-board"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["powerup-extraBalls"].waitForExistence(timeout: 3))
     }
 }

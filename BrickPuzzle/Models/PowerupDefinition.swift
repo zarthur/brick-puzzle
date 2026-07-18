@@ -33,9 +33,37 @@ enum PowerupDefinition: String, Codable, CaseIterable, Hashable, Identifiable {
 struct PowerupLoadout: Codable, Hashable {
     let selectedPowerups: [PowerupDefinition]
 
+    static let empty = PowerupLoadout(selectedPowerups: [])
+
+    func validate(for level: LevelDefinition) throws {
+        if selectedPowerups.count > level.maxPowerupLoadoutSize {
+            throw PowerupLoadoutError.tooMany(
+                maximum: level.maxPowerupLoadoutSize,
+                actual: selectedPowerups.count
+            )
+        }
+        let duplicateIDs = Dictionary(grouping: selectedPowerups, by: \.self)
+            .filter { $0.value.count > 1 }
+            .map(\.key)
+            .sorted { $0.rawValue < $1.rawValue }
+        if !duplicateIDs.isEmpty {
+            throw PowerupLoadoutError.duplicates(duplicateIDs)
+        }
+        let unavailable = selectedPowerups
+            .filter { !level.availablePowerups.contains($0) }
+            .sorted { $0.rawValue < $1.rawValue }
+        if !unavailable.isEmpty {
+            throw PowerupLoadoutError.unavailable(unavailable)
+        }
+    }
+
     func isValid(for level: LevelDefinition) -> Bool {
-        selectedPowerups.count <= level.maxPowerupLoadoutSize
-            && selectedPowerups.allSatisfy(level.availablePowerups.contains)
+        (try? validate(for: level)) != nil
     }
 }
 
+enum PowerupLoadoutError: Error, Equatable {
+    case tooMany(maximum: Int, actual: Int)
+    case duplicates([PowerupDefinition])
+    case unavailable([PowerupDefinition])
+}
