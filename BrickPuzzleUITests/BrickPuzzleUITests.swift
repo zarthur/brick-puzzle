@@ -40,6 +40,8 @@ final class BrickPuzzleUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.staticTexts["Level Complete"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["3 stars"].exists)
+        XCTAssertTrue(app.staticTexts["Clean solve — excellent work."].exists)
         XCTAssertTrue(app.buttons["retry-attempt"].exists)
         XCTAssertTrue(app.buttons["results-level-select"].exists)
     }
@@ -51,6 +53,8 @@ final class BrickPuzzleUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.staticTexts["Attempt Failed"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Try a different angle or adjust your free powerup loadout."].exists)
         XCTAssertTrue(app.buttons["retry-attempt"].exists)
+        XCTAssertTrue(app.buttons["results-level-select"].exists)
     }
 }

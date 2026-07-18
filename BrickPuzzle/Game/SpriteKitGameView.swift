@@ -29,10 +29,6 @@ struct SpriteKitGameView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            SpriteView(scene: scene, options: [.allowsTransparency])
-                .background(Color(.secondarySystemBackground))
-                .accessibilityIdentifier("game-board")
-
             if !loadout.selectedPowerups.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -58,8 +54,19 @@ struct SpriteKitGameView: View {
                         }
                     }
                 }
-                .accessibilityIdentifier("powerup-controls")
+                .background(alignment: .topLeading) {
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityIdentifier("powerup-controls")
+                        .accessibilityLabel("Powerup controls")
+                        .allowsHitTesting(false)
+                }
             }
+
+            SpriteView(scene: scene, options: [.allowsTransparency])
+                .background(Color(.secondarySystemBackground))
+                .accessibilityIdentifier("game-board")
         }
         .onAppear {
             scene.configure(level: level, loadout: loadout, reduceMotion: reduceMotion) { snapshot, result in

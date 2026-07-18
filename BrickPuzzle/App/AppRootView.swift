@@ -119,7 +119,9 @@ private struct MainMenuView: View {
         .padding(24)
         .navigationTitle("Brick Puzzle")
         .navigationBarTitleDisplayMode(.inline)
-        .accessibilityIdentifier("main-menu")
+        .background(alignment: .topLeading) {
+            AccessibilityMarker(identifier: "main-menu")
+        }
     }
 
     private func menuButton(_ title: String, identifier: String, action: @escaping () -> Void) -> some View {
@@ -151,12 +153,15 @@ private struct LevelSelectView: View {
                     Spacer()
                     Image(systemName: "chevron.right").foregroundStyle(.tertiary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("level-\(level.id)")
         }
         .navigationTitle("Level Select")
-        .accessibilityIdentifier("level-select")
+        .background(alignment: .topLeading) {
+            AccessibilityMarker(identifier: "level-select")
+        }
     }
 
     private func progressText(for level: LevelDefinition) -> String {
@@ -182,7 +187,9 @@ private struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
-        .accessibilityIdentifier("settings-screen")
+        .background(alignment: .topLeading) {
+            AccessibilityMarker(identifier: "settings-screen")
+        }
     }
 }
 
@@ -251,7 +258,9 @@ private struct AttemptFlowView: View {
             .accessibilityHint("Brick symbols are number sign for standard, M for mission, S for shield, K for key, B for bomb, and X for splitter.")
         }
         .padding()
-        .accessibilityIdentifier("game-screen")
+        .background(alignment: .topLeading) {
+            AccessibilityMarker(identifier: "game-screen")
+        }
     }
 
     private func startAttempt() {
@@ -284,7 +293,9 @@ private struct GameHUD: View {
                 .accessibilityLabel("Retry level")
                 .accessibilityIdentifier("hud-retry")
         }
-        .accessibilityIdentifier("game-hud")
+        .background(alignment: .topLeading) {
+            AccessibilityMarker(identifier: "game-hud")
+        }
     }
 }
 
@@ -316,6 +327,7 @@ private struct PowerupLoadoutPicker: View {
                                 Spacer()
                                 Text(selected ? "Selected" : "Free").font(.caption).foregroundStyle(.secondary)
                             }
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .disabled(!selected && selection.count >= level.maxPowerupLoadoutSize)
@@ -330,7 +342,9 @@ private struct PowerupLoadoutPicker: View {
             }
             .padding()
         }
-        .accessibilityIdentifier("loadout-screen")
+        .background(alignment: .topLeading) {
+            AccessibilityMarker(identifier: "loadout-screen")
+        }
     }
 }
 
@@ -352,7 +366,10 @@ private struct AttemptResultsView: View {
             Button("Change Loadout", action: changeLoadout).buttonStyle(.bordered).accessibilityIdentifier("return-to-loadout")
             Button("Level Select", action: continueToLevels).accessibilityIdentifier("results-level-select")
         }
-        .padding().accessibilityIdentifier("results-screen")
+        .padding()
+        .background(alignment: .topLeading) {
+            AccessibilityMarker(identifier: "results-screen")
+        }
     }
 
     private var message: String {
@@ -360,6 +377,19 @@ private struct AttemptResultsView: View {
         if result.details.contains(.powerupUsed) { return "Powerup used. Replay without helpers to earn three stars." }
         if result.details.contains(.threeStarShotLimitMissed) { return "Complete in fewer shots to earn three stars." }
         return "Clean solve — excellent work."
+    }
+}
+
+private struct AccessibilityMarker: View {
+    let identifier: String
+
+    var body: some View {
+        Color.clear
+            .frame(width: 1, height: 1)
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier(identifier)
+            .accessibilityLabel(identifier)
+            .allowsHitTesting(false)
     }
 }
 
