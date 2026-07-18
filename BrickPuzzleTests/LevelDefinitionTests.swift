@@ -53,10 +53,10 @@ struct LevelDefinitionTests {
         #expect(LevelDefinition.prototype.starRules.threeStarRequiresNoPowerups)
     }
 
-    @Test("Bundled tutorial levels have complete validated metadata")
-    func tutorialMetadataIsComplete() throws {
+    @Test("Bundled levels have complete validated metadata")
+    func bundledMetadataIsComplete() throws {
         let levels = try LevelBundleLoader().loadAllLevels()
-        #expect(levels.count == 3)
+        #expect(levels.count == 7)
         for level in levels {
             try level.metadata.validate(for: level.id)
             #expect(level.metadata.validationStatus == .replayValidated)

@@ -24,26 +24,21 @@ jobs:
 
       - name: Select an iPhone simulator
         id: simulator
-        shell: bash
-        run: |
-          simulator_id="$(xcrun simctl list devices available -j | ruby -rjson -e '
-            devices = JSON.parse(STDIN.read).fetch("devices").values.flatten
-            iphone = devices.find { |device| device.fetch("name").start_with?("iPhone") }
-            abort "No available iPhone simulator was found" unless iphone
-            puts iphone.fetch("udid")
-          ')"
-          echo "id=$simulator_id" >> "$GITHUB_OUTPUT"
-          xcrun simctl boot "$simulator_id" || true
-          xcrun simctl bootstatus "$simulator_id" -b
+        run: python3 .github/scripts/ios_ci.py select-simulator
 
-      - name: Run unit and UI tests
-        run: |
-          xcodebuild test \
-            -project BrickPuzzle.xcodeproj \
-            -scheme BrickPuzzle \
-            -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}" \
-            -derivedDataPath "$RUNNER_TEMP/BrickPuzzleDerivedData" \
-            -resultBundlePath "$RUNNER_TEMP/BrickPuzzleTests.xcresult"
+      # XCUITest execution is temporarily disabled on macos-26 because Xcode 26.5
+      # cannot launch the runner (IDELaunchParametersSnapshot reports no debugger
+      # version). Keep compiling the UI target so source regressions still fail CI.
+      # Restore UI execution as part of https://github.com/zarthur/brick-puzzle/issues/51.
+      - name: Build app and all test targets
+        run: >-
+          python3 .github/scripts/ios_ci.py build-for-testing
+          --simulator-id "${{ steps.simulator.outputs.id }}"
+
+      - name: Run unit tests
+        run: >-
+          python3 .github/scripts/ios_ci.py run-unit-tests
+          --simulator-id "${{ steps.simulator.outputs.id }}"
 
       - name: Upload test results
         if: always()

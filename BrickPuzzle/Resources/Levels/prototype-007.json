@@ -1,0 +1,39 @@
+{
+  "id": "prototype-007",
+  "title": "Unlock the Blast",
+  "columns": 7,
+  "rows": 9,
+  "bricks": [
+    { "id": "mission-vault", "row": 1, "column": 3, "kind": "mission", "hitPoints": 1 },
+    { "id": "shield-vault", "row": 2, "column": 3, "kind": "shield", "hitPoints": 1 },
+    { "id": "key-vault", "row": 4, "column": 1, "kind": "key", "hitPoints": 1 },
+    { "id": "bomb-route", "row": 4, "column": 5, "kind": "bomb", "hitPoints": 1 },
+    { "id": "splitter-route", "row": 5, "column": 3, "kind": "splitter", "hitPoints": 1 },
+    { "id": "wall-left", "row": 3, "column": 2, "kind": "standard", "hitPoints": 2 },
+    { "id": "wall-right", "row": 3, "column": 4, "kind": "standard", "hitPoints": 2 }
+  ],
+  "availablePowerups": ["shieldBreaker", "bomb", "rowClear", "extraBalls", "precisionGuide"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["key-vault", "shield-vault", "mission-vault"]
+  },
+  "shieldLinks": [
+    { "shieldID": "shield-vault", "protectedBrickIDs": ["mission-vault"] }
+  ],
+  "keyLinks": [
+    { "keyID": "key-vault", "lockedBrickIDs": ["shield-vault"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 5,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 3
+  },
+  "metadata": {
+    "intendedSolution": "Take the key route first, break the unlocked shield, then finish the mission vault; the bomb and splitter offer assisted alternatives.",
+    "minimumKnownShotCount": 3,
+    "requiredMechanics": ["aiming", "missionObjective", "keyOrdering", "shields", "bombs", "splitters"],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  }
+}

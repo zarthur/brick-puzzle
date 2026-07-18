@@ -4,13 +4,16 @@ import Testing
 
 @Suite("Replay validation")
 struct ReplayRunnerTests {
-    @Test("Every bundled tutorial level has a passing clean replay")
-    func bundledTutorialReplaysValidate() throws {
+    @Test("Every bundled level has a passing clean replay")
+    func bundledReplaysValidate() throws {
         let levels = try LevelBundleLoader().loadAllLevels()
         let replays = try ReplayBundleLoader().loadAllReplays()
         let replayLevelIDs = Set(replays.map(\.levelID))
 
-        #expect(levels.map(\.id) == ["prototype-001", "prototype-002", "prototype-003"])
+        #expect(levels.map(\.id) == [
+            "prototype-001", "prototype-002", "prototype-003", "prototype-004",
+            "prototype-005", "prototype-006", "prototype-007"
+        ])
         #expect(replayLevelIDs == Set(levels.map(\.id)))
 
         for replay in replays {
