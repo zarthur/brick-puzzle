@@ -14,8 +14,21 @@ struct LevelBundleLoaderTests {
     @Test("Bundled catalog is deterministically ordered")
     func bundledCatalogOrder() throws {
         #expect(try LevelBundleLoader().loadAllLevels().map(\.id) == [
-            "prototype-001", "prototype-002", "prototype-003"
+            "prototype-001", "prototype-002", "prototype-003", "prototype-004",
+            "prototype-005", "prototype-006", "prototype-007"
         ])
+    }
+
+    @Test("Combination levels expose multiple mechanics and useful loadout choices")
+    func combinationLevelContract() throws {
+        let levels = try LevelBundleLoader().loadAllLevels().filter {
+            ("prototype-004"..."prototype-007").contains($0.id)
+        }
+
+        #expect(levels.count == 4)
+        #expect(levels.allSatisfy { $0.metadata.requiredMechanics.count >= 3 })
+        #expect(levels.filter { $0.maxPowerupLoadoutSize > 1 && $0.availablePowerups.count > 2 }.count >= 2)
+        #expect(levels.allSatisfy { $0.starRules.threeStarRequiresNoPowerups })
     }
 
     @Test("Invalid fixture reports decode failure")

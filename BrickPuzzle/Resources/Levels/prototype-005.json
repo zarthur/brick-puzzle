@@ -1,0 +1,27 @@
+{
+  "id": "prototype-005",
+  "title": "Bomb Bank",
+  "columns": 7,
+  "rows": 8,
+  "bricks": [
+    { "id": "mission-left", "row": 1, "column": 2, "kind": "mission", "hitPoints": 1 },
+    { "id": "mission-right", "row": 1, "column": 4, "kind": "mission", "hitPoints": 1 },
+    { "id": "bomb-center", "row": 2, "column": 3, "kind": "bomb", "hitPoints": 1 },
+    { "id": "guard-left", "row": 3, "column": 1, "kind": "standard", "hitPoints": 2 },
+    { "id": "guard-right", "row": 3, "column": 5, "kind": "standard", "hitPoints": 2 }
+  ],
+  "availablePowerups": ["bomb", "rowClear", "precisionGuide", "extraBalls"],
+  "maxPowerupLoadoutSize": 2,
+  "starRules": {
+    "twoStarShotLimit": 3,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 2
+  },
+  "metadata": {
+    "intendedSolution": "Hit the center bomb so its blast opens both mission targets, then clean up any surviving mission brick.",
+    "minimumKnownShotCount": 2,
+    "requiredMechanics": ["aiming", "missionObjective", "bombs"],
+    "difficulty": "easy",
+    "validationStatus": "replayValidated"
+  }
+}

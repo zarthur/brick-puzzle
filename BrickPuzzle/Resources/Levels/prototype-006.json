@@ -1,0 +1,31 @@
+{
+  "id": "prototype-006",
+  "title": "Split Decision",
+  "columns": 7,
+  "rows": 9,
+  "bricks": [
+    { "id": "mission-left", "row": 1, "column": 1, "kind": "mission", "hitPoints": 1 },
+    { "id": "mission-right", "row": 1, "column": 5, "kind": "mission", "hitPoints": 1 },
+    { "id": "splitter-center", "row": 3, "column": 3, "kind": "splitter", "hitPoints": 1 },
+    { "id": "rail-left", "row": 2, "column": 2, "kind": "standard", "hitPoints": 2 },
+    { "id": "rail-right", "row": 2, "column": 4, "kind": "standard", "hitPoints": 2 }
+  ],
+  "availablePowerups": ["extraBalls", "precisionGuide", "rowClear", "bomb"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["splitter-center", "mission-left", "mission-right"]
+  },
+  "starRules": {
+    "twoStarShotLimit": 4,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 3
+  },
+  "metadata": {
+    "intendedSolution": "Open the center splitter, then use the extra paths to clear the left and right mission bricks in order.",
+    "minimumKnownShotCount": 3,
+    "requiredMechanics": ["aiming", "missionObjective", "splitters"],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  }
+}
