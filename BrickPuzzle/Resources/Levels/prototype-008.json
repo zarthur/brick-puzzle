@@ -1,0 +1,37 @@
+{
+  "id": "prototype-008",
+  "title": "Crossfire",
+  "columns": 7,
+  "rows": 9,
+  "bricks": [
+    { "id": "mission-left", "row": 1, "column": 1, "kind": "mission", "hitPoints": 1 },
+    { "id": "mission-right", "row": 1, "column": 5, "kind": "mission", "hitPoints": 1 },
+    { "id": "shield-left", "row": 2, "column": 1, "kind": "shield", "hitPoints": 1 },
+    { "id": "shield-right", "row": 2, "column": 5, "kind": "shield", "hitPoints": 1 },
+    { "id": "splitter-center", "row": 4, "column": 3, "kind": "splitter", "hitPoints": 1 },
+    { "id": "rail-left", "row": 3, "column": 2, "kind": "standard", "hitPoints": 2 },
+    { "id": "rail-right", "row": 3, "column": 4, "kind": "standard", "hitPoints": 2 }
+  ],
+  "availablePowerups": ["shieldBreaker", "extraBalls", "precisionGuide", "rowClear"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["splitter-center", "shield-left", "shield-right", "mission-left", "mission-right"]
+  },
+  "shieldLinks": [
+    { "shieldID": "shield-left", "protectedBrickIDs": ["mission-left"] },
+    { "shieldID": "shield-right", "protectedBrickIDs": ["mission-right"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 6,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 5
+  },
+  "metadata": {
+    "intendedSolution": "Open the center splitter, peel both shields from crossing angles, then use the split lanes to finish the two mission bricks without a powerup.",
+    "minimumKnownShotCount": 5,
+    "requiredMechanics": ["aiming", "missionObjective", "shields", "splitters"],
+    "difficulty": "hard",
+    "validationStatus": "replayValidated"
+  }
+}

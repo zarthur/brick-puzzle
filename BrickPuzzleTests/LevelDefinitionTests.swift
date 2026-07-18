@@ -56,7 +56,7 @@ struct LevelDefinitionTests {
     @Test("Bundled levels have complete validated metadata")
     func bundledMetadataIsComplete() throws {
         let levels = try LevelBundleLoader().loadAllLevels()
-        #expect(levels.count == 7)
+        #expect(levels.count == 10)
         for level in levels {
             try level.metadata.validate(for: level.id)
             #expect(level.metadata.validationStatus == .replayValidated)

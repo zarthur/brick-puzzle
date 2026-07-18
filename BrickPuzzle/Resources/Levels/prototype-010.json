@@ -1,0 +1,41 @@
+{
+  "id": "prototype-010",
+  "title": "Final Sequence",
+  "columns": 9,
+  "rows": 10,
+  "bricks": [
+    { "id": "mission-crown", "row": 1, "column": 4, "kind": "mission", "hitPoints": 1 },
+    { "id": "shield-crown", "row": 2, "column": 4, "kind": "shield", "hitPoints": 1 },
+    { "id": "bomb-left", "row": 3, "column": 2, "kind": "bomb", "hitPoints": 1 },
+    { "id": "bomb-right", "row": 3, "column": 6, "kind": "bomb", "hitPoints": 1 },
+    { "id": "key-center", "row": 5, "column": 4, "kind": "key", "hitPoints": 1 },
+    { "id": "splitter-left", "row": 6, "column": 2, "kind": "splitter", "hitPoints": 1 },
+    { "id": "splitter-right", "row": 6, "column": 6, "kind": "splitter", "hitPoints": 1 },
+    { "id": "wall-left", "row": 4, "column": 3, "kind": "standard", "hitPoints": 3 },
+    { "id": "wall-right", "row": 4, "column": 5, "kind": "standard", "hitPoints": 3 }
+  ],
+  "availablePowerups": ["extraBalls", "shieldBreaker", "bomb", "rowClear", "precisionGuide"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["splitter-left", "key-center", "bomb-left", "shield-crown", "mission-crown"]
+  },
+  "shieldLinks": [
+    { "shieldID": "shield-crown", "protectedBrickIDs": ["mission-crown"] }
+  ],
+  "keyLinks": [
+    { "keyID": "key-center", "lockedBrickIDs": ["bomb-left", "bomb-right"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 6,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 5
+  },
+  "metadata": {
+    "intendedSolution": "Open one splitter lane, claim the center key, use the left bomb route to expose the crown, then clear its shield and mission brick in five precise shots.",
+    "minimumKnownShotCount": 5,
+    "requiredMechanics": ["aiming", "missionObjective", "starScoring", "keyOrdering", "shields", "bombs", "splitters"],
+    "difficulty": "hard",
+    "validationStatus": "replayValidated"
+  }
+}

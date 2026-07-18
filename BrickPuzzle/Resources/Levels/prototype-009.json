@@ -1,0 +1,39 @@
+{
+  "id": "prototype-009",
+  "title": "Powder Key",
+  "columns": 8,
+  "rows": 9,
+  "bricks": [
+    { "id": "mission-cache", "row": 1, "column": 4, "kind": "mission", "hitPoints": 1 },
+    { "id": "shield-cache", "row": 2, "column": 4, "kind": "shield", "hitPoints": 1 },
+    { "id": "bomb-lock", "row": 3, "column": 4, "kind": "bomb", "hitPoints": 1 },
+    { "id": "key-left", "row": 5, "column": 1, "kind": "key", "hitPoints": 1 },
+    { "id": "splitter-right", "row": 5, "column": 6, "kind": "splitter", "hitPoints": 1 },
+    { "id": "buttress-left", "row": 4, "column": 3, "kind": "standard", "hitPoints": 3 },
+    { "id": "buttress-right", "row": 4, "column": 5, "kind": "standard", "hitPoints": 3 }
+  ],
+  "availablePowerups": ["bomb", "shieldBreaker", "extraBalls", "precisionGuide", "rowClear"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["key-left", "bomb-lock", "shield-cache", "mission-cache"]
+  },
+  "shieldLinks": [
+    { "shieldID": "shield-cache", "protectedBrickIDs": ["mission-cache"] }
+  ],
+  "keyLinks": [
+    { "keyID": "key-left", "lockedBrickIDs": ["bomb-lock"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 5,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 4
+  },
+  "metadata": {
+    "intendedSolution": "Bank left for the key, detonate the unlocked bomb to open the center, then remove the shield and mission cache; the splitter provides a safer assisted route.",
+    "minimumKnownShotCount": 4,
+    "requiredMechanics": ["aiming", "missionObjective", "keyOrdering", "shields", "bombs", "splitters"],
+    "difficulty": "hard",
+    "validationStatus": "replayValidated"
+  }
+}
