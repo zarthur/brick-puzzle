@@ -11,5 +11,6 @@ final class BrickPuzzleUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.staticTexts["Brick Puzzle"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.otherElements["game-board"].waitForExistence(timeout: 3))
     }
 }

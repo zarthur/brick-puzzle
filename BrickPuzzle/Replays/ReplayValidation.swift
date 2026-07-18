@@ -69,8 +69,7 @@ struct ReplayRunner {
             let brickIDs = Set(state.snapshot.bricks.map(\.id))
 
             for (index, shot) in replay.shots.enumerated() {
-                guard shot.aimAngleDegrees.isFinite,
-                      (0...180).contains(shot.aimAngleDegrees) else {
+                guard GameState.isValidAim(shot.aimAngleDegrees) else {
                     return failureResult(
                         replay: replay,
                         shotIndex: index,
@@ -99,6 +98,7 @@ struct ReplayRunner {
 
                 state.applyPlaceholderShot(
                     destroyedBrickIDs: shot.destroyedBrickIDs,
+                    aimAngleDegrees: shot.aimAngleDegrees,
                     usedPowerups: shot.usedPowerups
                 )
             }

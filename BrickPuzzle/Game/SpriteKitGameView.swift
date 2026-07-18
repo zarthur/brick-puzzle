@@ -11,5 +11,6 @@ struct SpriteKitGameView: View {
             .onAppear {
                 scene.configure(level: level)
             }
+            .accessibilityIdentifier("game-board")
     }
 }
