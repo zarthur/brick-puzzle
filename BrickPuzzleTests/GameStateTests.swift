@@ -637,3 +637,60 @@ struct PowerupAndScoringTests {
         BrickDefinition(id: id, row: row, column: column, kind: kind, hitPoints: hitPoints)
     }
 }
+
+@Suite("Game performance")
+struct GamePerformanceTests {
+    @Test("High-ball-count shots stay within the prototype budget")
+    func highBallCountShotPerformance() throws {
+        let baseline = try resolveStressShot()
+        #expect(baseline.frames.map { $0.balls.count }.max() ?? 0 >= 6)
+        #expect(baseline.finalSnapshot.terminalReason != .simulationLimitReached)
+
+        let clock = ContinuousClock()
+        let elapsed = try clock.measure {
+            for _ in 0..<25 {
+                _ = try resolveStressShot()
+            }
+        }
+        #expect(elapsed < .seconds(2), "25 stress shots took \(elapsed)")
+    }
+
+    private func resolveStressShot() throws -> ShotResolution {
+        let level = LevelDefinition(
+            id: "performance-stress",
+            title: "Performance Stress",
+            columns: 9,
+            rows: 10,
+            bricks: [
+                BrickDefinition(id: "mission", row: 0, column: 4, kind: .mission, hitPoints: 50),
+                BrickDefinition(id: "splitter-low", row: 7, column: 4, kind: .splitter, hitPoints: 1),
+                BrickDefinition(id: "splitter-mid", row: 5, column: 4, kind: .splitter, hitPoints: 1),
+                BrickDefinition(id: "splitter-high", row: 3, column: 4, kind: .splitter, hitPoints: 1),
+                BrickDefinition(id: "rail-left", row: 4, column: 2, kind: .standard, hitPoints: 10),
+                BrickDefinition(id: "rail-right", row: 4, column: 6, kind: .standard, hitPoints: 10)
+            ],
+            availablePowerups: [.extraBalls],
+            maxPowerupLoadoutSize: 1,
+            starRules: StarRules(
+                twoStarShotLimit: 4,
+                threeStarRequiresNoPowerups: true,
+                threeStarShotLimit: 3
+            ),
+            metadata: LevelAuthoringMetadata(
+                intendedSolution: "Performance-only stress fixture.",
+                minimumKnownShotCount: 1,
+                requiredMechanics: [.aiming, .missionObjective, .splitters],
+                difficulty: .hard,
+                validationStatus: .draft
+            )
+        )
+        var state = try GameState(
+            level: level,
+            loadout: PowerupLoadout(selectedPowerups: [.extraBalls])
+        )
+        try state.activatePowerup(.extraBalls)
+        try state.beginAiming()
+        try state.updateAim(angleDegrees: 90)
+        return try state.fire()
+    }
+}
