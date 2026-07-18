@@ -4,6 +4,7 @@ import SwiftUI
 struct SpriteKitGameView: View {
     let level: LevelDefinition
     let loadout: PowerupLoadout
+    let onSnapshot: (GameSnapshot) -> Void
     let onResult: (AttemptResult) -> Void
 
     @State private var scene = BrickPuzzleScene(size: CGSize(width: 390, height: 640))
@@ -14,10 +15,12 @@ struct SpriteKitGameView: View {
     init(
         level: LevelDefinition,
         loadout: PowerupLoadout = .empty,
+        onSnapshot: @escaping (GameSnapshot) -> Void = { _ in },
         onResult: @escaping (AttemptResult) -> Void = { _ in }
     ) {
         self.level = level
         self.loadout = loadout
+        self.onSnapshot = onSnapshot
         self.onResult = onResult
     }
 
@@ -57,6 +60,7 @@ struct SpriteKitGameView: View {
         }
         .onAppear {
             scene.configure(level: level, loadout: loadout) { snapshot, result in
+                onSnapshot(snapshot)
                 usedPowerups = Set(snapshot.usedPowerups)
                 armedPowerups = Set(snapshot.armedPowerups)
                 if targetingPowerup.map(snapshot.usedPowerups.contains) == true {

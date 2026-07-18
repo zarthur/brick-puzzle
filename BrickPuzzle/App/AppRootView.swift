@@ -1,78 +1,245 @@
 import SwiftUI
 
 struct AppRootView: View {
-    private let prototypeLevel = LevelBundleLoader.prototypeLevel()
+    @StateObject private var appState = AppState()
+    @State private var path: [Route] = []
 
-    @State private var selectedPowerups: Set<PowerupDefinition> = []
-    @State private var isPlaying = false
-    @State private var result: AttemptResult?
-    @State private var attemptID = UUID()
+    private let levels: [LevelDefinition]
+
+    init() {
+        levels = (try? LevelBundleLoader().loadAllLevels()) ?? [.prototype]
+    }
 
     var body: some View {
-        NavigationStack {
-            Group {
+        NavigationStack(path: $path) {
+            MainMenuView(
+                play: { path.append(.loadout(levels[0].id)) },
+                levelSelect: { path.append(.levelSelect) },
+                settings: { path.append(.settings) }
+            )
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .levelSelect:
+                    LevelSelectView(levels: levels, appState: appState) { level in
+                        path.append(.loadout(level.id))
+                    }
+                case .settings:
+                    SettingsView(settings: $appState.settings)
+                case .loadout(let levelID):
+                    if let level = level(withID: levelID) {
+                        AttemptFlowView(level: level, appState: appState) {
+                            path = [.levelSelect]
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func level(withID id: String) -> LevelDefinition? {
+        levels.first { $0.id == id }
+    }
+}
+
+private enum Route: Hashable {
+    case levelSelect
+    case settings
+    case loadout(String)
+}
+
+private struct MainMenuView: View {
+    let play: () -> Void
+    let levelSelect: () -> Void
+    let settings: () -> Void
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Spacer()
+            Image(systemName: "square.grid.3x3.square")
+                .font(.system(size: 72))
+                .foregroundStyle(.tint)
+                .accessibilityHidden(true)
+            Text("Brick Puzzle")
+                .font(.largeTitle.bold())
+                .accessibilityIdentifier("app-title")
+            Text("Find the cleanest path through every board.")
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Spacer()
+            menuButton("Play", identifier: "menu-play", action: play)
+            menuButton("Level Select", identifier: "menu-level-select", action: levelSelect)
+            Button("Settings", action: settings)
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("menu-settings")
+            Spacer()
+        }
+        .padding(24)
+        .navigationTitle("Brick Puzzle")
+        .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier("main-menu")
+    }
+
+    private func menuButton(_ title: String, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .accessibilityIdentifier(identifier)
+    }
+}
+
+private struct LevelSelectView: View {
+    let levels: [LevelDefinition]
+    @ObservedObject var appState: AppState
+    let select: (LevelDefinition) -> Void
+
+    var body: some View {
+        List(levels) { level in
+            Button { select(level) } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "square.grid.3x3.fill")
+                        .foregroundStyle(.tint)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(level.title).font(.headline)
+                        Text(progressText(for: level))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("level-\(level.id)")
+        }
+        .navigationTitle("Level Select")
+        .accessibilityIdentifier("level-select")
+    }
+
+    private func progressText(for level: LevelDefinition) -> String {
+        let progress = appState.progress(for: level.id)
+        guard progress.bestStars > 0 else { return "Not completed" }
+        let stars = String(repeating: "★", count: progress.bestStars)
+        return progress.bestShotCount.map { "\(stars) · Best \($0) shots" } ?? stars
+    }
+}
+
+private struct SettingsView: View {
+    @Binding var settings: AppSettings
+
+    var body: some View {
+        Form {
+            Section("Feedback") {
+                Toggle("Sound", isOn: $settings.soundEnabled)
+                Toggle("Music", isOn: $settings.musicEnabled)
+                Toggle("Haptics", isOn: $settings.hapticsEnabled)
+            }
+            Section("Accessibility") {
+                Toggle("Reduce Motion", isOn: $settings.reduceMotion)
+            }
+        }
+        .navigationTitle("Settings")
+        .accessibilityIdentifier("settings-screen")
+    }
+}
+
+private struct AttemptFlowView: View {
+    let level: LevelDefinition
+    @ObservedObject var appState: AppState
+    let continueToLevels: () -> Void
+
+    @State private var selectedPowerups: Set<PowerupDefinition> = []
+    @State private var stage = Stage.loadout
+    @State private var result: AttemptResult?
+    @State private var attemptID = UUID()
+    @State private var snapshot: GameSnapshot?
+
+    private enum Stage { case loadout, playing, result }
+
+    var body: some View {
+        Group {
+            switch stage {
+            case .loadout:
+                PowerupLoadoutPicker(level: level, selection: $selectedPowerups, start: startAttempt)
+            case .playing:
+                gameView
+            case .result:
                 if let result {
                     AttemptResultsView(
-                        level: prototypeLevel,
+                        level: level,
                         result: result,
                         retry: retry,
-                        returnToLoadout: returnToLoadout
-                    )
-                } else if isPlaying {
-                    gameView
-                } else {
-                    PowerupLoadoutPicker(
-                        level: prototypeLevel,
-                        selection: $selectedPowerups,
-                        start: startAttempt
+                        changeLoadout: { stage = .loadout },
+                        continueToLevels: continueToLevels
                     )
                 }
             }
-            .padding()
-            .navigationTitle("Brick Puzzle")
-            .navigationBarTitleDisplayMode(.inline)
+        }
+        .navigationTitle(level.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(stage == .playing)
+        .toolbar {
+            if stage == .playing {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Level Select", systemImage: "square.grid.2x2", action: continueToLevels)
+                        .accessibilityIdentifier("game-level-select")
+                }
+            }
         }
     }
 
     private var gameView: some View {
-        VStack(spacing: 12) {
-            Text(prototypeLevel.title)
-                .font(.title2.bold())
-
+        VStack(spacing: 8) {
+            GameHUD(level: level, snapshot: snapshot, retry: retry)
             SpriteKitGameView(
-                level: prototypeLevel,
-                loadout: PowerupLoadout(
-                    selectedPowerups: selectedPowerups.sorted { $0.rawValue < $1.rawValue }
-                )
+                level: level,
+                loadout: PowerupLoadout(selectedPowerups: selectedPowerups.sorted { $0.rawValue < $1.rawValue }),
+                onSnapshot: { snapshot = $0 }
             ) { completedResult in
                 result = completedResult
+                appState.record(completedResult, for: level.id)
+                stage = .result
             }
             .id(attemptID)
-            .frame(maxHeight: 680)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(.quaternary, lineWidth: 1)
-            }
-            .accessibilityLabel("Prototype game board")
+            .overlay { RoundedRectangle(cornerRadius: 12).stroke(.quaternary) }
+            .accessibilityLabel("Game board for \(level.title)")
         }
+        .padding()
+        .accessibilityIdentifier("game-screen")
     }
 
     private func startAttempt() {
-        attemptID = UUID()
-        result = nil
-        isPlaying = true
+        attemptID = UUID(); snapshot = nil; result = nil; stage = .playing
     }
 
     private func retry() {
-        attemptID = UUID()
-        result = nil
-        isPlaying = true
+        attemptID = UUID(); snapshot = nil; result = nil; stage = .playing
     }
+}
 
-    private func returnToLoadout() {
-        result = nil
-        isPlaying = false
+private struct GameHUD: View {
+    let level: LevelDefinition
+    let snapshot: GameSnapshot?
+    let retry: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(level.title).font(.headline)
+                Text("Mission bricks: \(snapshot?.missionBrickCount ?? level.bricks.filter { $0.kind == .mission }.count)")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text("Shots \(snapshot?.shotCount ?? 0)")
+                .font(.subheadline.monospacedDigit())
+                .accessibilityIdentifier("hud-shot-count")
+            Button("Retry", systemImage: "arrow.counterclockwise", action: retry)
+                .labelStyle(.iconOnly)
+                .accessibilityLabel("Retry level")
+                .accessibilityIdentifier("hud-retry")
+        }
+        .accessibilityIdentifier("game-hud")
     }
 }
 
@@ -84,67 +251,41 @@ private struct PowerupLoadoutPicker: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                VStack(spacing: 8) {
-                    Text("Brick Puzzle")
-                        .font(.largeTitle.bold())
-                        .accessibilityIdentifier("app-title")
-
-                    Text("Choose free helpers, or solve clean for three stars.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-
+                Text("Choose free helpers, or solve clean for three stars.")
+                    .foregroundStyle(.secondary).multilineTextAlignment(.center)
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("Powerup Loadout")
-                            .font(.headline)
+                        Text("Powerup Loadout").font(.headline)
                         Spacer()
-                        Text("\(selection.count)/\(level.maxPowerupLoadoutSize)")
-                            .font(.subheadline.monospacedDigit())
-                            .foregroundStyle(.secondary)
+                        Text("\(selection.count)/\(level.maxPowerupLoadoutSize)").monospacedDigit()
                     }
-
                     ForEach(level.availablePowerups) { powerup in
-                        let isSelected = selection.contains(powerup)
+                        let selected = selection.contains(powerup)
                         Button {
-                            if isSelected {
-                                selection.remove(powerup)
-                            } else if selection.count < level.maxPowerupLoadoutSize {
-                                selection.insert(powerup)
-                            }
+                            if selected { selection.remove(powerup) }
+                            else if selection.count < level.maxPowerupLoadoutSize { selection.insert(powerup) }
                         } label: {
                             HStack {
-                                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                                 Text(powerup.displayName)
                                 Spacer()
-                                Text(isSelected ? "Selected" : "Free")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                Text(selected ? "Selected" : "Free").font(.caption).foregroundStyle(.secondary)
                             }
-                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .disabled(!isSelected && selection.count >= level.maxPowerupLoadoutSize)
+                        .disabled(!selected && selection.count >= level.maxPowerupLoadoutSize)
                         .accessibilityIdentifier("loadout-\(powerup.rawValue)")
                     }
                 }
-                .padding()
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
-
+                .padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
                 Text(selection.isEmpty ? "No powerups selected — clean solve eligible" : "Only activated powerups affect your stars")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-
-                Button(action: start) {
-                    Text(selection.isEmpty ? "Start Clean" : "Start Attempt")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("start-attempt")
+                    .font(.footnote).foregroundStyle(.secondary)
+                Button(action: start) { Text(selection.isEmpty ? "Start Clean" : "Start Attempt").frame(maxWidth: .infinity) }
+                    .buttonStyle(.borderedProminent).accessibilityIdentifier("start-attempt")
             }
-            .padding(.vertical, 4)
+            .padding()
         }
+        .accessibilityIdentifier("loadout-screen")
     }
 }
 
@@ -152,55 +293,29 @@ private struct AttemptResultsView: View {
     let level: LevelDefinition
     let result: AttemptResult
     let retry: () -> Void
-    let returnToLoadout: () -> Void
+    let changeLoadout: () -> Void
+    let continueToLevels: () -> Void
 
     var body: some View {
         VStack(spacing: 20) {
-            Text(result.stars == StarRating.none ? "Attempt Failed" : "Level Complete")
-                .font(.largeTitle.bold())
-
-            Text(starText)
-                .font(.system(size: 46))
-                .accessibilityLabel("\(result.stars.rawValue) stars")
-
-            Text("\(result.shotCount) shots")
-                .font(.title3.monospacedDigit())
-
-            Text(resultMessage)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Button("Retry", action: retry)
-                .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("retry-attempt")
-
-            Button("Change Loadout", action: returnToLoadout)
-                .buttonStyle(.bordered)
-                .accessibilityIdentifier("return-to-loadout")
+            Text(result.stars == .none ? "Attempt Failed" : "Level Complete").font(.largeTitle.bold())
+            Text(String(repeating: "★", count: result.stars.rawValue) + String(repeating: "☆", count: 3 - result.stars.rawValue))
+                .font(.system(size: 46)).accessibilityLabel("\(result.stars.rawValue) stars")
+            Text("\(result.shotCount) shots").font(.title3.monospacedDigit())
+            Text(message).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            Button("Retry", action: retry).buttonStyle(.borderedProminent).accessibilityIdentifier("retry-attempt")
+            Button("Change Loadout", action: changeLoadout).buttonStyle(.bordered).accessibilityIdentifier("return-to-loadout")
+            Button("Level Select", action: continueToLevels).accessibilityIdentifier("results-level-select")
         }
-        .navigationTitle(level.title)
-        .accessibilityIdentifier("results-screen")
+        .padding().accessibilityIdentifier("results-screen")
     }
 
-    private var starText: String {
-        String(repeating: "★", count: result.stars.rawValue)
-            + String(repeating: "☆", count: 3 - result.stars.rawValue)
-    }
-
-    private var resultMessage: String {
-        if result.stars == StarRating.none {
-            return "Try a different angle or adjust your free powerup loadout."
-        }
-        if result.details.contains(.powerupUsed) {
-            return "Powerup used. Replay without helpers to earn three stars."
-        }
-        if result.details.contains(.threeStarShotLimitMissed) {
-            return "Complete in fewer shots to earn three stars."
-        }
+    private var message: String {
+        if result.stars == .none { return "Try a different angle or adjust your free powerup loadout." }
+        if result.details.contains(.powerupUsed) { return "Powerup used. Replay without helpers to earn three stars." }
+        if result.details.contains(.threeStarShotLimitMissed) { return "Complete in fewer shots to earn three stars." }
         return "Clean solve — excellent work."
     }
 }
 
-#Preview {
-    AppRootView()
-}
+#Preview { AppRootView() }
