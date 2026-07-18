@@ -8,7 +8,7 @@ struct LevelDefinitionTests {
     func prototypeLevelDefinesLoadoutChoices() {
         let level = LevelDefinition.prototype
 
-        #expect(level.maxPowerupLoadoutSize == 2)
+        #expect(level.maxPowerupLoadoutSize == 1)
         #expect(level.availablePowerups.count > level.maxPowerupLoadoutSize)
     }
 
@@ -23,8 +23,16 @@ struct LevelDefinitionTests {
     @Test("Loadout validation reports too many, duplicate, and unavailable choices")
     func loadoutValidationErrorsAreActionable() throws {
         let level = LevelDefinition.prototype
+        var levelJSON = try #require(JSONSerialization.jsonObject(
+            with: JSONEncoder().encode(level)
+        ) as? [String: Any])
+        levelJSON["maxPowerupLoadoutSize"] = 2
+        let duplicateTestLevel = try JSONDecoder().decode(
+            LevelDefinition.self,
+            from: JSONSerialization.data(withJSONObject: levelJSON)
+        )
 
-        #expect(throws: PowerupLoadoutError.tooMany(maximum: 2, actual: 3)) {
+        #expect(throws: PowerupLoadoutError.tooMany(maximum: 1, actual: 3)) {
             try PowerupLoadout(
                 selectedPowerups: [.extraBalls, .shieldBreaker, .precisionGuide]
             ).validate(for: level)
@@ -32,19 +40,49 @@ struct LevelDefinitionTests {
         #expect(throws: PowerupLoadoutError.duplicates([.extraBalls])) {
             try PowerupLoadout(
                 selectedPowerups: [.extraBalls, .extraBalls]
-            ).validate(for: level)
+            ).validate(for: duplicateTestLevel)
         }
         #expect(throws: PowerupLoadoutError.unavailable([.gravityShift])) {
             try PowerupLoadout(selectedPowerups: [.gravityShift]).validate(for: level)
         }
-        try PowerupLoadout(
-            selectedPowerups: [.extraBalls, .precisionGuide]
-        ).validate(for: level)
+        try PowerupLoadout(selectedPowerups: [.extraBalls]).validate(for: level)
     }
 
     @Test("Three star prototype requires no powerups")
     func threeStarPrototypeRequiresNoPowerups() {
         #expect(LevelDefinition.prototype.starRules.threeStarRequiresNoPowerups)
+    }
+
+    @Test("Bundled tutorial levels have complete validated metadata")
+    func tutorialMetadataIsComplete() throws {
+        let levels = try LevelBundleLoader().loadAllLevels()
+        #expect(levels.count == 3)
+        for level in levels {
+            try level.metadata.validate(for: level.id)
+            #expect(level.metadata.validationStatus == .replayValidated)
+            #expect(level.metadata.minimumKnownShotCount <= level.starRules.threeStarShotLimit)
+        }
+    }
+
+    @Test("Fixture decoding requires authoring metadata")
+    func missingMetadataFailsDecoding() {
+        let json = """
+        {
+          "id":"missing-metadata", "title":"Missing", "columns":1, "rows":1,
+          "bricks":[], "availablePowerups":[], "maxPowerupLoadoutSize":0,
+          "starRules":{"twoStarShotLimit":2,"threeStarRequiresNoPowerups":true,"threeStarShotLimit":1}
+        }
+        """
+        #expect(throws: DecodingError.self) {
+            _ = try JSONDecoder().decode(LevelDefinition.self, from: Data(json.utf8))
+        }
+    }
+
+    @Test("Authoring metadata round trips")
+    func metadataRoundTrips() throws {
+        let encoded = try JSONEncoder().encode(LevelDefinition.prototype)
+        let decoded = try JSONDecoder().decode(LevelDefinition.self, from: encoded)
+        #expect(decoded.metadata == LevelDefinition.prototype.metadata)
     }
 }
 

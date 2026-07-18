@@ -11,6 +11,13 @@ struct LevelBundleLoaderTests {
         #expect(level == .prototype)
     }
 
+    @Test("Bundled catalog is deterministically ordered")
+    func bundledCatalogOrder() throws {
+        #expect(try LevelBundleLoader().loadAllLevels().map(\.id) == [
+            "prototype-001", "prototype-002", "prototype-003"
+        ])
+    }
+
     @Test("Invalid fixture reports decode failure")
     func invalidFixtureReportsDecodeFailure() throws {
         let fileManager = FileManager.default

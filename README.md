@@ -26,6 +26,18 @@ The first playable target is a 10-level offline prototype. A build is considered
 
 Bundled level fixtures live in [BrickPuzzle/Resources/Levels](BrickPuzzle/Resources/Levels). Add prototype level JSON files there so the app, level loader, and replay validation tests use the same source data.
 
+### Level authoring contract
+
+Name bundled levels and their clean validation replays with matching, zero-padded ids, for example `prototype-003.json` and `prototype-003-clean.json`. Every level fixture must include `metadata` with:
+
+- `intendedSolution`: internal design notes, never player-facing;
+- `minimumKnownShotCount`: the best validated solution currently known;
+- `requiredMechanics`: typed mechanics exercised by the level;
+- `difficulty`: `tutorial`, `easy`, `medium`, or `hard`;
+- `validationStatus`: `draft` or `replayValidated`.
+
+The catalog and replay tests require deterministic fixture ordering, unique level ids, a replay for each bundled level, and a clean three-star replay for levels whose rules require no powerups.
+
 ## Project Management Documents
 
 - [Product Plan](ProjectManagement/product-management/product-plan.md)

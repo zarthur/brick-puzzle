@@ -5,18 +5,35 @@ struct AppRootView: View {
     @State private var path: [Route] = []
 
     private let levels: [LevelDefinition]
+    private let testResult: AttemptResult?
 
     init() {
         levels = (try? LevelBundleLoader().loadAllLevels()) ?? [.prototype]
+        testResult = Self.testResult(
+            from: ProcessInfo.processInfo.arguments,
+            environment: ProcessInfo.processInfo.environment
+        )
     }
 
     var body: some View {
         NavigationStack(path: $path) {
-            MainMenuView(
-                play: { path.append(.loadout(levels[0].id)) },
-                levelSelect: { path.append(.levelSelect) },
-                settings: { path.append(.settings) }
-            )
+            Group {
+                if let testResult {
+                    AttemptResultsView(
+                        level: levels[0],
+                        result: testResult,
+                        retry: {},
+                        changeLoadout: {},
+                        continueToLevels: {}
+                    )
+                } else {
+                    MainMenuView(
+                        play: { path.append(.loadout(levels[0].id)) },
+                        levelSelect: { path.append(.levelSelect) },
+                        settings: { path.append(.settings) }
+                    )
+                }
+            }
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .levelSelect:
@@ -38,6 +55,32 @@ struct AppRootView: View {
 
     private func level(withID id: String) -> LevelDefinition? {
         levels.first { $0.id == id }
+    }
+
+    private static func testResult(from arguments: [String], environment: [String: String]) -> AttemptResult? {
+        let argumentValue = arguments.firstIndex(of: "-ui-test-result").flatMap { index in
+            arguments.indices.contains(index + 1) ? arguments[index + 1] : nil
+        }
+        switch environment["UI_TEST_RESULT"] ?? argumentValue {
+        case "won":
+            return AttemptResult(
+                terminalReason: .objectiveCompleted,
+                stars: .three,
+                shotCount: 1,
+                usedPowerups: [],
+                details: [.completed]
+            )
+        case "failed":
+            return AttemptResult(
+                terminalReason: .shotLimitReached,
+                stars: .none,
+                shotCount: 3,
+                usedPowerups: [],
+                details: [.failed]
+            )
+        default:
+            return nil
+        }
     }
 }
 
@@ -194,6 +237,7 @@ private struct AttemptFlowView: View {
             SpriteKitGameView(
                 level: level,
                 loadout: PowerupLoadout(selectedPowerups: selectedPowerups.sorted { $0.rawValue < $1.rawValue }),
+                reduceMotion: appState.settings.reduceMotion,
                 onSnapshot: { snapshot = $0 }
             ) { completedResult in
                 result = completedResult
@@ -204,6 +248,7 @@ private struct AttemptFlowView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay { RoundedRectangle(cornerRadius: 12).stroke(.quaternary) }
             .accessibilityLabel("Game board for \(level.title)")
+            .accessibilityHint("Brick symbols are number sign for standard, M for mission, S for shield, K for key, B for bomb, and X for splitter.")
         }
         .padding()
         .accessibilityIdentifier("game-screen")

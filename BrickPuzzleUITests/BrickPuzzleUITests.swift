@@ -32,4 +32,25 @@ final class BrickPuzzleUITests: XCTestCase {
         XCTAssertTrue(app.otherElements["settings-screen"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.switches["Reduce Motion"].exists)
     }
+
+    @MainActor
+    func testWonResultsScenario() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["UI_TEST_RESULT"] = "won"
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["Level Complete"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["retry-attempt"].exists)
+        XCTAssertTrue(app.buttons["results-level-select"].exists)
+    }
+
+    @MainActor
+    func testFailedResultsScenario() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["UI_TEST_RESULT"] = "failed"
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["Attempt Failed"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["retry-attempt"].exists)
+    }
 }

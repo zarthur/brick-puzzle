@@ -10,7 +10,7 @@ struct GameStateTests {
         let snapshot = state.snapshot
 
         #expect(snapshot.levelID == level.id)
-        #expect(snapshot.boardSize == BoardSize(columns: 7, rows: 8))
+        #expect(snapshot.boardSize == BoardSize(columns: 5, rows: 6))
         #expect(snapshot.bricks.count == level.bricks.count)
         #expect(snapshot.missionBrickCount == 1)
         #expect(snapshot.turnPhase == .idle)
