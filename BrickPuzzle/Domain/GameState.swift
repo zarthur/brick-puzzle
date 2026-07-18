@@ -52,6 +52,12 @@ struct BoardRect: Codable, Hashable {
 struct BoardGeometry: Codable, Hashable {
     let size: BoardSize
 
+    /// Matches the brick outline rendered by `BrickPuzzleScene`, expressed in
+    /// board-cell units. Keeping this here makes gameplay collision geometry
+    /// agree with the boundary visible to the player.
+    static let drawnBrickWidth = 0.86
+    static let drawnBrickHeight = 0.72
+
     var launcherPosition: BoardPoint {
         BoardPoint(x: Double(size.columns) / 2, y: -0.65)
     }
@@ -67,6 +73,30 @@ struct BoardGeometry: Codable, Hashable {
             maxX: Double(coordinate.column + 1),
             maxY: minY + 1
         )
+    }
+
+    func drawnBrickBounds(at coordinate: BoardCoordinate) -> BoardRect? {
+        guard let cell = brickBounds(at: coordinate) else { return nil }
+        let horizontalInset = (1 - Self.drawnBrickWidth) / 2
+        let verticalInset = (1 - Self.drawnBrickHeight) / 2
+        return BoardRect(
+            minX: cell.minX + horizontalInset,
+            minY: cell.minY + verticalInset,
+            maxX: cell.maxX - horizontalInset,
+            maxY: cell.maxY - verticalInset
+        )
+    }
+
+    func collidingBrickIndices(
+        at center: BoardPoint,
+        radius: Double,
+        bricks: [BrickState]
+    ) -> [Int] {
+        bricks.indices.filter { index in
+            guard !bricks[index].isDestroyed,
+                  let bounds = drawnBrickBounds(at: bricks[index].coordinate) else { return false }
+            return bounds.intersectsCircle(center: center, radius: radius)
+        }.sorted { bricks[$0].id < bricks[$1].id }
     }
 }
 
@@ -131,6 +161,7 @@ enum GameplayEventKind: String, Codable, Hashable {
     case ballsSplit
     case objectiveStepCompleted
     case objectiveOrderViolated
+    case powerupActivated
 }
 
 struct GameplayEvent: Codable, Hashable {
@@ -150,6 +181,8 @@ struct GameSnapshot: Codable, Hashable {
     let shotCount: Int
     let aimAngleDegrees: Double?
     let shotHistory: [ShotRecord]
+    let selectedPowerups: [PowerupDefinition]
+    let armedPowerups: [PowerupDefinition]
     let usedPowerups: [PowerupDefinition]
     let bricks: [BrickState]
     let balls: [BallState]
@@ -171,6 +204,7 @@ struct BallFrame: Codable, Hashable, Identifiable {
 struct ShotFrame: Codable, Hashable {
     let elapsedTime: Double
     let balls: [BallFrame]
+    let bricks: [BrickState]
 
     /// Compatibility convenience for single-ball callers and tests.
     var position: BoardPoint {
@@ -195,6 +229,42 @@ enum GameInputError: Error, Equatable {
     case invalidAim
 }
 
+enum PowerupActivationError: Error, Equatable {
+    case invalidPhase
+    case notSelected(PowerupDefinition)
+    case alreadyUsed(PowerupDefinition)
+    case targetRequired(PowerupDefinition)
+    case invalidTarget
+    case unsupported(PowerupDefinition)
+}
+
+enum StarRating: Int, Codable, Hashable, Comparable {
+    case none = 0
+    case one = 1
+    case two = 2
+    case three = 3
+
+    static func < (lhs: StarRating, rhs: StarRating) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+
+enum ResultDetail: String, Codable, Hashable {
+    case completed
+    case failed
+    case twoStarShotLimitMissed
+    case threeStarShotLimitMissed
+    case powerupUsed
+}
+
+struct AttemptResult: Codable, Hashable {
+    let terminalReason: TerminalReason
+    let stars: StarRating
+    let shotCount: Int
+    let usedPowerups: [PowerupDefinition]
+    let details: [ResultDetail]
+}
+
 enum DamageSource: String, Codable, Hashable {
     case ball
     case bomb
@@ -210,6 +280,27 @@ struct GameSimulationConfiguration: Codable, Hashable {
     let animationSampleStride: Int
     let maximumActiveBalls: Int
     let splitterAngleOffsetDegrees: Double
+    let extraBallAngleOffsetDegrees: Double
+
+    init(
+        ballRadius: Double,
+        ballSpeed: Double,
+        fixedTimeStep: Double,
+        maximumSteps: Int,
+        animationSampleStride: Int,
+        maximumActiveBalls: Int,
+        splitterAngleOffsetDegrees: Double,
+        extraBallAngleOffsetDegrees: Double = 6
+    ) {
+        self.ballRadius = ballRadius
+        self.ballSpeed = ballSpeed
+        self.fixedTimeStep = fixedTimeStep
+        self.maximumSteps = maximumSteps
+        self.animationSampleStride = animationSampleStride
+        self.maximumActiveBalls = maximumActiveBalls
+        self.splitterAngleOffsetDegrees = splitterAngleOffsetDegrees
+        self.extraBallAngleOffsetDegrees = extraBallAngleOffsetDegrees
+    }
 
     static let prototype = GameSimulationConfiguration(
         ballRadius: 0.12,
@@ -218,7 +309,8 @@ struct GameSimulationConfiguration: Codable, Hashable {
         maximumSteps: 2_400,
         animationSampleStride: 2,
         maximumActiveBalls: 8,
-        splitterAngleOffsetDegrees: 18
+        splitterAngleOffsetDegrees: 18,
+        extraBallAngleOffsetDegrees: 6
     )
 }
 
@@ -227,6 +319,7 @@ struct GameState: Codable, Hashable {
     private let shotLimit: Int?
     private let dangerLineRow: Int?
     private let objectiveDefinition: ObjectiveDefinition
+    private let starRules: StarRules
     private let shieldLinks: [ShieldLink]
     private let keyLinks: [KeyLink]
     private let simulation: GameSimulationConfiguration
@@ -239,9 +332,19 @@ struct GameState: Codable, Hashable {
         level: LevelDefinition,
         simulation: GameSimulationConfiguration = .prototype
     ) {
+        self = try! GameState(level: level, loadout: .empty, simulation: simulation)
+    }
+
+    init(
+        level: LevelDefinition,
+        loadout: PowerupLoadout,
+        simulation: GameSimulationConfiguration = .prototype
+    ) throws {
+        try loadout.validate(for: level)
         shotLimit = level.shotLimit
         dangerLineRow = level.dangerLineRow
         objectiveDefinition = level.objective
+        starRules = level.starRules
         shieldLinks = level.shieldLinks
         keyLinks = level.keyLinks
         self.simulation = simulation
@@ -281,10 +384,156 @@ struct GameState: Codable, Hashable {
             shotCount: 0,
             aimAngleDegrees: nil,
             shotHistory: [],
+            selectedPowerups: loadout.selectedPowerups.sorted { $0.rawValue < $1.rawValue },
+            armedPowerups: [],
             usedPowerups: [],
             bricks: bricks,
             balls: []
         )
+    }
+
+    var result: AttemptResult? {
+        guard let terminalReason = snapshot.terminalReason,
+              snapshot.turnPhase == .won || snapshot.turnPhase == .failed else {
+            return nil
+        }
+        guard snapshot.turnPhase == .won else {
+            return AttemptResult(
+                terminalReason: terminalReason,
+                stars: .none,
+                shotCount: snapshot.shotCount,
+                usedPowerups: snapshot.usedPowerups,
+                details: [.failed]
+            )
+        }
+
+        var stars = StarRating.one
+        var details: [ResultDetail] = [.completed]
+        if snapshot.shotCount <= starRules.twoStarShotLimit {
+            stars = .two
+        } else {
+            details.append(.twoStarShotLimitMissed)
+        }
+
+        let meetsThreeStarShotLimit = snapshot.shotCount <= starRules.threeStarShotLimit
+        let meetsPowerupRule = !starRules.threeStarRequiresNoPowerups || snapshot.usedPowerups.isEmpty
+        if meetsThreeStarShotLimit, meetsPowerupRule {
+            stars = .three
+        } else {
+            if !meetsThreeStarShotLimit { details.append(.threeStarShotLimitMissed) }
+            if !meetsPowerupRule { details.append(.powerupUsed) }
+        }
+        return AttemptResult(
+            terminalReason: terminalReason,
+            stars: stars,
+            shotCount: snapshot.shotCount,
+            usedPowerups: snapshot.usedPowerups,
+            details: details
+        )
+    }
+
+    @discardableResult
+    mutating func activatePowerup(
+        _ powerup: PowerupDefinition,
+        target: BoardCoordinate? = nil
+    ) throws -> [GameplayEvent] {
+        guard snapshot.turnPhase == .idle else {
+            throw PowerupActivationError.invalidPhase
+        }
+        guard snapshot.selectedPowerups.contains(powerup) else {
+            throw PowerupActivationError.notSelected(powerup)
+        }
+        guard !snapshot.usedPowerups.contains(powerup) else {
+            throw PowerupActivationError.alreadyUsed(powerup)
+        }
+
+        var bricks = snapshot.bricks
+        var objectiveProgress = snapshot.objectiveProgress
+        var events = [GameplayEvent(
+            kind: .powerupActivated,
+            subjectID: powerup.rawValue,
+            relatedIDs: []
+        )]
+        var armedPowerups = snapshot.armedPowerups
+        var triggeredBombIDs: Set<String> = []
+
+        switch powerup {
+        case .extraBalls, .precisionGuide:
+            armedPowerups.append(powerup)
+
+        case .shieldBreaker:
+            let protectedIDs = bricks.filter(\.isProtected).map(\.id).sorted()
+            for index in bricks.indices {
+                bricks[index].protectionSourceIDs.removeAll()
+            }
+            events.append(GameplayEvent(
+                kind: .shieldRemoved,
+                subjectID: powerup.rawValue,
+                relatedIDs: protectedIDs
+            ))
+
+        case .bomb:
+            guard let target else {
+                throw PowerupActivationError.targetRequired(powerup)
+            }
+            guard target.isValid(in: snapshot.boardSize) else {
+                throw PowerupActivationError.invalidTarget
+            }
+            let targetIDs = bricks.filter { brick in
+                !brick.isDestroyed
+                    && abs(brick.coordinate.row - target.row) <= 1
+                    && abs(brick.coordinate.column - target.column) <= 1
+            }.map(\.id).sorted()
+            for brickID in targetIDs {
+                _ = resolveDamageQueue(
+                    initial: PendingDamage(targetID: brickID, amount: 1, source: .powerup),
+                    bricks: &bricks,
+                    objectiveProgress: &objectiveProgress,
+                    events: &events,
+                    triggeredBombIDs: &triggeredBombIDs
+                )
+            }
+
+        case .rowClear:
+            guard let target else {
+                throw PowerupActivationError.targetRequired(powerup)
+            }
+            guard target.isValid(in: snapshot.boardSize) else {
+                throw PowerupActivationError.invalidTarget
+            }
+            let targetIDs = bricks.filter {
+                !$0.isDestroyed && $0.coordinate.row == target.row
+            }.map(\.id).sorted()
+            for brickID in targetIDs {
+                _ = resolveDamageQueue(
+                    initial: PendingDamage(targetID: brickID, amount: 1, source: .powerup),
+                    bricks: &bricks,
+                    objectiveProgress: &objectiveProgress,
+                    events: &events,
+                    triggeredBombIDs: &triggeredBombIDs
+                )
+            }
+
+        case .gravityShift:
+            throw PowerupActivationError.unsupported(powerup)
+        }
+
+        let usedPowerups = (snapshot.usedPowerups + [powerup])
+            .sorted { $0.rawValue < $1.rawValue }
+        let terminal = terminalState(
+            bricks: bricks,
+            shotCount: snapshot.shotCount,
+            reachedSimulationLimit: false
+        )
+        replaceSnapshot(
+            turnPhase: terminal.phase,
+            terminalReason: terminal.reason,
+            objectiveProgress: objectiveProgress,
+            armedPowerups: armedPowerups,
+            usedPowerups: usedPowerups,
+            bricks: bricks
+        )
+        return events
     }
 
     mutating func beginAiming() throws {
@@ -320,20 +569,25 @@ struct GameState: Codable, Hashable {
         }
 
         let geometry = BoardGeometry(size: snapshot.boardSize)
-        let radians = angle * .pi / 180
         let shotNumber = snapshot.shotCount + 1
-        var balls = [BallState(
-            id: "shot-\(shotNumber)-ball-1",
-            position: geometry.launcherPosition,
-            velocity: BoardVector(
-                dx: cos(radians) * simulation.ballSpeed,
-                dy: sin(radians) * simulation.ballSpeed
-            ),
-            isActive: true
-        )]
+        let initialAngleOffsets: [Double] = snapshot.armedPowerups.contains(.extraBalls)
+            ? [-simulation.extraBallAngleOffsetDegrees, 0, simulation.extraBallAngleOffsetDegrees]
+            : [0]
+        var balls = initialAngleOffsets.prefix(simulation.maximumActiveBalls).enumerated().map { index, offset in
+            let radians = (angle + offset) * .pi / 180
+            return BallState(
+                id: "shot-\(shotNumber)-ball-\(index + 1)",
+                position: geometry.launcherPosition,
+                velocity: BoardVector(
+                    dx: cos(radians) * simulation.ballSpeed,
+                    dy: sin(radians) * simulation.ballSpeed
+                ),
+                isActive: true
+            )
+        }
         var bricks = snapshot.bricks
         var objectiveProgress = snapshot.objectiveProgress
-        var frames = [makeFrame(elapsedTime: 0, balls: balls)]
+        var frames = [makeFrame(elapsedTime: 0, balls: balls, bricks: bricks)]
         var events: [GameplayEvent] = []
         var triggeredBombIDs: Set<String> = []
         var triggeredSplitterIDs: Set<String> = []
@@ -359,7 +613,7 @@ struct GameState: Codable, Hashable {
                 balls[index].position.y += balls[index].velocity.dy * simulation.fixedTimeStep
                 resolveWallCollisions(ball: &balls[index], boardSize: snapshot.boardSize)
 
-                if let collision = resolveBrickCollision(
+                let collisions = resolveBrickCollisions(
                     ball: &balls[index],
                     previousPosition: previousPosition,
                     bricks: &bricks,
@@ -367,11 +621,12 @@ struct GameState: Codable, Hashable {
                     objectiveProgress: &objectiveProgress,
                     events: &events,
                     triggeredBombIDs: &triggeredBombIDs
-                ) {
+                )
+                if !collisions.isEmpty {
                     hadCollision = true
-                    if collision.kind == .splitter,
-                       collision.didDamage,
-                       triggeredSplitterIDs.insert(collision.brickID).inserted {
+                    for collision in collisions where collision.kind == .splitter
+                        && collision.didDamage
+                        && triggeredSplitterIDs.insert(collision.brickID).inserted {
                         let availableSlots = max(0, simulation.maximumActiveBalls - balls.filter(\.isActive).count - spawnedBalls.count)
                         let spawnCount = min(2, availableSlots)
                         for offset in [
@@ -406,7 +661,8 @@ struct GameState: Codable, Hashable {
             if step.isMultiple(of: simulation.animationSampleStride) || hadCollision || !spawnedBalls.isEmpty {
                 frames.append(makeFrame(
                     elapsedTime: Double(step) * simulation.fixedTimeStep,
-                    balls: balls
+                    balls: balls,
+                    bricks: bricks
                 ))
             }
 
@@ -414,7 +670,8 @@ struct GameState: Codable, Hashable {
                 reachedSimulationLimit = false
                 frames.append(makeFrame(
                     elapsedTime: Double(step) * simulation.fixedTimeStep,
-                    balls: balls
+                    balls: balls,
+                    bricks: bricks
                 ))
                 break
             }
@@ -438,6 +695,7 @@ struct GameState: Codable, Hashable {
                 destroyedBrickIDs: destroyedIDs,
                 events: events
             )],
+            armedPowerups: [],
             bricks: bricks,
             balls: []
         )
@@ -529,12 +787,17 @@ struct GameState: Codable, Hashable {
         )
     }
 
-    private func makeFrame(elapsedTime: Double, balls: [BallState]) -> ShotFrame {
+    private func makeFrame(
+        elapsedTime: Double,
+        balls: [BallState],
+        bricks: [BrickState]
+    ) -> ShotFrame {
         ShotFrame(
             elapsedTime: elapsedTime,
             balls: balls.sorted { $0.id < $1.id }.map {
                 BallFrame(id: $0.id, position: $0.position)
-            }
+            },
+            bricks: bricks
         )
     }
 
@@ -555,7 +818,7 @@ struct GameState: Codable, Hashable {
         }
     }
 
-    private func resolveBrickCollision(
+    private func resolveBrickCollisions(
         ball: inout BallState,
         previousPosition: BoardPoint,
         bricks: inout [BrickState],
@@ -563,31 +826,38 @@ struct GameState: Codable, Hashable {
         objectiveProgress: inout ObjectiveProgress,
         events: inout [GameplayEvent],
         triggeredBombIDs: inout Set<String>
-    ) -> CollisionResult? {
-        guard let index = bricks.indices.first(where: { index in
-            guard !bricks[index].isDestroyed,
-                  let bounds = geometry.brickBounds(at: bricks[index].coordinate) else { return false }
-            return bounds.intersectsCircle(center: ball.position, radius: simulation.ballRadius)
-        }), let bounds = geometry.brickBounds(at: bricks[index].coordinate) else { return nil }
-
-        let brickID = bricks[index].id
-        let kind = bricks[index].kind
-        let didDamage = resolveDamageQueue(
-            initial: PendingDamage(targetID: brickID, amount: 1, source: .ball),
-            bricks: &bricks,
-            objectiveProgress: &objectiveProgress,
-            events: &events,
-            triggeredBombIDs: &triggeredBombIDs
+    ) -> [CollisionResult] {
+        let collisionIndices = geometry.collidingBrickIndices(
+            at: ball.position,
+            radius: simulation.ballRadius,
+            bricks: bricks
         )
+        guard !collisionIndices.isEmpty else { return [] }
 
-        if previousPosition.y <= bounds.minY || previousPosition.y >= bounds.maxY {
+        let bounds = collisionIndices.compactMap { geometry.drawnBrickBounds(at: bricks[$0].coordinate) }
+        let minY = bounds.map(\.minY).min() ?? ball.position.y
+        let maxY = bounds.map(\.maxY).max() ?? ball.position.y
+        let collisions = collisionIndices.map { index in
+            let brickID = bricks[index].id
+            let kind = bricks[index].kind
+            let didDamage = resolveDamageQueue(
+                initial: PendingDamage(targetID: brickID, amount: 1, source: .ball),
+                bricks: &bricks,
+                objectiveProgress: &objectiveProgress,
+                events: &events,
+                triggeredBombIDs: &triggeredBombIDs
+            )
+            return CollisionResult(brickID: brickID, kind: kind, didDamage: didDamage)
+        }
+
+        if previousPosition.y <= minY || previousPosition.y >= maxY {
             ball.velocity.dy *= -1
             ball.position.y = previousPosition.y
         } else {
             ball.velocity.dx *= -1
             ball.position.x = previousPosition.x
         }
-        return CollisionResult(brickID: brickID, kind: kind, didDamage: didDamage)
+        return collisions
     }
 
     @discardableResult
@@ -739,6 +1009,8 @@ struct GameState: Codable, Hashable {
         clearsAim: Bool = false,
         objectiveProgress: ObjectiveProgress? = nil,
         shotHistory: [ShotRecord]? = nil,
+        selectedPowerups: [PowerupDefinition]? = nil,
+        armedPowerups: [PowerupDefinition]? = nil,
         usedPowerups: [PowerupDefinition]? = nil,
         bricks: [BrickState]? = nil,
         balls: [BallState]? = nil
@@ -754,6 +1026,8 @@ struct GameState: Codable, Hashable {
             shotCount: shotCount ?? snapshot.shotCount,
             aimAngleDegrees: clearsAim ? nil : (aimAngleDegrees ?? snapshot.aimAngleDegrees),
             shotHistory: shotHistory ?? snapshot.shotHistory,
+            selectedPowerups: selectedPowerups ?? snapshot.selectedPowerups,
+            armedPowerups: armedPowerups ?? snapshot.armedPowerups,
             usedPowerups: usedPowerups ?? snapshot.usedPowerups,
             bricks: bricks ?? snapshot.bricks,
             balls: balls ?? snapshot.balls
