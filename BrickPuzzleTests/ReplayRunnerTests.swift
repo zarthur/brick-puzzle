@@ -4,14 +4,20 @@ import Testing
 
 @Suite("Replay validation")
 struct ReplayRunnerTests {
-    @Test("Bundled prototype replay validates")
-    func bundledPrototypeReplayValidates() throws {
-        let replay = try ReplayBundleLoader().loadReplay(named: "prototype-001-clean")
-        let result = ReplayRunner().validate(replay)
+    @Test("Every bundled tutorial level has a passing clean replay")
+    func bundledTutorialReplaysValidate() throws {
+        let levels = try LevelBundleLoader().loadAllLevels()
+        let replays = try ReplayBundleLoader().loadAllReplays()
+        let replayLevelIDs = Set(replays.map(\.levelID))
 
-        #expect(result.passed)
-        #expect(result.actualOutcome == ReplayActualOutcome(completed: true, stars: 3))
-        #expect(result.failureMessage == nil)
+        #expect(levels.map(\.id) == ["prototype-001", "prototype-002", "prototype-003"])
+        #expect(replayLevelIDs == Set(levels.map(\.id)))
+
+        for replay in replays {
+            let result = ReplayRunner().validate(replay)
+            #expect(result.passed, Comment(rawValue: result.failureMessage ?? replay.levelID))
+            #expect(result.actualOutcome == ReplayActualOutcome(completed: true, stars: 3))
+        }
     }
 
     @Test("Failing replay includes level shot expected and actual outcome")
@@ -106,6 +112,13 @@ struct ReplayRunnerTests {
                 twoStarShotLimit: 2,
                 threeStarRequiresNoPowerups: false,
                 threeStarShotLimit: 1
+            ),
+            metadata: LevelAuthoringMetadata(
+                intendedSolution: "Use the selected helper.",
+                minimumKnownShotCount: 1,
+                requiredMechanics: [.aiming, .missionObjective],
+                difficulty: .easy,
+                validationStatus: .replayValidated
             )
         )
         let levelData = try JSONEncoder().encode(level)

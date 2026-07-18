@@ -1,0 +1,33 @@
+{
+  "id": "prototype-003",
+  "title": "Key First",
+  "columns": 5,
+  "rows": 7,
+  "bricks": [
+    { "id": "mission-gate", "row": 1, "column": 2, "kind": "mission", "hitPoints": 1 },
+    { "id": "key-gate", "row": 3, "column": 2, "kind": "key", "hitPoints": 1 },
+    { "id": "side-left", "row": 2, "column": 0, "kind": "standard", "hitPoints": 1 },
+    { "id": "side-right", "row": 2, "column": 4, "kind": "standard", "hitPoints": 1 }
+  ],
+  "availablePowerups": ["precisionGuide", "extraBalls"],
+  "maxPowerupLoadoutSize": 1,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["key-gate", "mission-gate"]
+  },
+  "keyLinks": [
+    { "keyID": "key-gate", "lockedBrickIDs": ["mission-gate"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 3,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 2
+  },
+  "metadata": {
+    "intendedSolution": "Break the key first, then clear the unlocked mission brick.",
+    "minimumKnownShotCount": 2,
+    "requiredMechanics": ["aiming", "missionObjective", "keyOrdering"],
+    "difficulty": "tutorial",
+    "validationStatus": "replayValidated"
+  }
+}

@@ -4,6 +4,55 @@ enum LevelObjective: String, Codable, Hashable {
     case clearMissionBricks
 }
 
+enum LevelMechanic: String, Codable, CaseIterable, Hashable {
+    case aiming
+    case standardDamage
+    case missionObjective
+    case starScoring
+    case keyOrdering
+    case shields
+    case bombs
+    case splitters
+}
+
+enum LevelDifficulty: String, Codable, CaseIterable, Hashable {
+    case tutorial
+    case easy
+    case medium
+    case hard
+}
+
+enum LevelValidationStatus: String, Codable, CaseIterable, Hashable {
+    case draft
+    case replayValidated
+}
+
+struct LevelAuthoringMetadata: Codable, Hashable {
+    let intendedSolution: String
+    let minimumKnownShotCount: Int
+    let requiredMechanics: [LevelMechanic]
+    let difficulty: LevelDifficulty
+    let validationStatus: LevelValidationStatus
+
+    func validate(for levelID: String) throws {
+        guard !intendedSolution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw LevelMetadataError.emptyIntendedSolution(levelID: levelID)
+        }
+        guard minimumKnownShotCount > 0 else {
+            throw LevelMetadataError.invalidMinimumShotCount(levelID: levelID)
+        }
+        guard !requiredMechanics.isEmpty else {
+            throw LevelMetadataError.missingRequiredMechanics(levelID: levelID)
+        }
+    }
+}
+
+enum LevelMetadataError: Error, Equatable {
+    case emptyIntendedSolution(levelID: String)
+    case invalidMinimumShotCount(levelID: String)
+    case missingRequiredMechanics(levelID: String)
+}
+
 struct ObjectiveDefinition: Codable, Hashable {
     let kind: LevelObjective
     let orderedBrickIDs: [String]
@@ -38,6 +87,7 @@ struct LevelDefinition: Codable, Hashable, Identifiable {
     let objective: ObjectiveDefinition
     let shieldLinks: [ShieldLink]
     let keyLinks: [KeyLink]
+    let metadata: LevelAuthoringMetadata
 
     init(
         id: String,
@@ -52,7 +102,8 @@ struct LevelDefinition: Codable, Hashable, Identifiable {
         dangerLineRow: Int? = nil,
         objective: ObjectiveDefinition = .clearMissionBricks,
         shieldLinks: [ShieldLink] = [],
-        keyLinks: [KeyLink] = []
+        keyLinks: [KeyLink] = [],
+        metadata: LevelAuthoringMetadata = .prototype
     ) {
         self.id = id
         self.title = title
@@ -67,12 +118,13 @@ struct LevelDefinition: Codable, Hashable, Identifiable {
         self.objective = objective
         self.shieldLinks = shieldLinks
         self.keyLinks = keyLinks
+        self.metadata = metadata
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, title, columns, rows, bricks, availablePowerups
         case maxPowerupLoadoutSize, starRules, shotLimit, dangerLineRow
-        case objective, shieldLinks, keyLinks
+        case objective, shieldLinks, keyLinks, metadata
     }
 
     init(from decoder: Decoder) throws {
@@ -91,6 +143,8 @@ struct LevelDefinition: Codable, Hashable, Identifiable {
             ?? .clearMissionBricks
         shieldLinks = try container.decodeIfPresent([ShieldLink].self, forKey: .shieldLinks) ?? []
         keyLinks = try container.decodeIfPresent([KeyLink].self, forKey: .keyLinks) ?? []
+        metadata = try container.decode(LevelAuthoringMetadata.self, forKey: .metadata)
+        try metadata.validate(for: id)
     }
 }
 
@@ -148,39 +202,31 @@ struct StarRules: Codable, Hashable {
 extension LevelDefinition {
     static let prototype = LevelDefinition(
         id: "prototype-001",
-        title: "Prototype Level",
-        columns: 7,
-        rows: 8,
+        title: "First Shot",
+        columns: 5,
+        rows: 6,
         bricks: [
-            BrickDefinition(id: "shield-left", row: 0, column: 2, kind: .shield, hitPoints: 3),
-            BrickDefinition(id: "mission-core", row: 0, column: 3, kind: .mission, hitPoints: 4),
-            BrickDefinition(id: "shield-right", row: 0, column: 4, kind: .shield, hitPoints: 3),
-            BrickDefinition(id: "standard-left", row: 1, column: 1, kind: .standard, hitPoints: 2),
-            BrickDefinition(id: "key-core", row: 1, column: 3, kind: .key, hitPoints: 1),
-            BrickDefinition(id: "standard-right", row: 1, column: 5, kind: .standard, hitPoints: 2),
-            BrickDefinition(id: "bomb-left", row: 2, column: 0, kind: .bomb, hitPoints: 1),
-            BrickDefinition(id: "center-block", row: 2, column: 3, kind: .standard, hitPoints: 3),
-            BrickDefinition(id: "splitter-right", row: 2, column: 6, kind: .splitter, hitPoints: 1),
-            BrickDefinition(id: "standard-lower-left", row: 3, column: 2, kind: .standard, hitPoints: 2),
-            BrickDefinition(id: "standard-lower-right", row: 3, column: 4, kind: .standard, hitPoints: 2)
+            BrickDefinition(id: "mission-center", row: 1, column: 2, kind: .mission, hitPoints: 1),
+            BrickDefinition(id: "standard-left", row: 2, column: 1, kind: .standard, hitPoints: 1),
+            BrickDefinition(id: "standard-right", row: 2, column: 3, kind: .standard, hitPoints: 1)
         ],
-        availablePowerups: [.extraBalls, .shieldBreaker, .precisionGuide, .bomb, .rowClear],
-        maxPowerupLoadoutSize: 2,
+        availablePowerups: [.extraBalls, .precisionGuide],
+        maxPowerupLoadoutSize: 1,
         starRules: StarRules(
-            twoStarShotLimit: 4,
+            twoStarShotLimit: 2,
             threeStarRequiresNoPowerups: true,
-            threeStarShotLimit: 3
+            threeStarShotLimit: 1
         ),
-        objective: ObjectiveDefinition(
-            kind: .clearMissionBricks,
-            orderedBrickIDs: ["key-core", "mission-core"]
-        ),
-        shieldLinks: [
-            ShieldLink(shieldID: "shield-left", protectedBrickIDs: ["mission-core"]),
-            ShieldLink(shieldID: "shield-right", protectedBrickIDs: ["mission-core"])
-        ],
-        keyLinks: [
-            KeyLink(keyID: "key-core", lockedBrickIDs: ["center-block"])
-        ]
+        metadata: .prototype
+    )
+}
+
+extension LevelAuthoringMetadata {
+    static let prototype = LevelAuthoringMetadata(
+        intendedSolution: "Aim through the center lane and break the mission brick in one shot.",
+        minimumKnownShotCount: 1,
+        requiredMechanics: [.aiming, .standardDamage, .missionObjective],
+        difficulty: .tutorial,
+        validationStatus: .replayValidated
     )
 }

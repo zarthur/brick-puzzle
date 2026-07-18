@@ -186,6 +186,17 @@ struct ReplayBundleLoader {
         return try decoder.decode(ReplayFixture.self, from: data)
     }
 
+    func loadAllReplays() throws -> [ReplayFixture] {
+        let directory = try replaysDirectory()
+        return try FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil
+        )
+        .filter { $0.pathExtension == "json" }
+        .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        .map { try decoder.decode(ReplayFixture.self, from: Data(contentsOf: $0)) }
+    }
+
     private func replaysDirectory() throws -> URL {
         if let replaysDirectoryURL {
             return try validatedDirectory(replaysDirectoryURL, label: replaysDirectoryURL.path)

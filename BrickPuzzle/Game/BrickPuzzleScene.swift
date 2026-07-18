@@ -7,6 +7,7 @@ final class BrickPuzzleScene: SKScene {
     private var isAimCancelled = false
     private var isAnimatingShot = false
     private var pendingTargetPowerup: PowerupDefinition?
+    private var reduceMotion = false
     private var onSnapshotChange: ((GameSnapshot, AttemptResult?) -> Void)?
 
     override init(size: CGSize) {
@@ -26,9 +27,11 @@ final class BrickPuzzleScene: SKScene {
     func configure(
         level: LevelDefinition,
         loadout: PowerupLoadout = .empty,
+        reduceMotion: Bool = false,
         onSnapshotChange: ((GameSnapshot, AttemptResult?) -> Void)? = nil
     ) {
         self.onSnapshotChange = onSnapshotChange
+        self.reduceMotion = reduceMotion
         gameState = try? GameState(level: level, loadout: loadout)
         pendingTargetPowerup = nil
         renderSnapshot()
@@ -189,6 +192,12 @@ final class BrickPuzzleScene: SKScene {
     }
 
     private func animate(_ resolution: ShotResolution) {
+        if reduceMotion {
+            isAnimatingShot = false
+            renderSnapshot()
+            notifySnapshotChange()
+            return
+        }
         guard let snapshot = gameState?.snapshot,
               !resolution.frames.isEmpty else {
             renderSnapshot()
@@ -256,6 +265,7 @@ final class BrickPuzzleScene: SKScene {
     }
 
     private func renderEventFeedback(_ events: [GameplayEvent]) {
+        guard !reduceMotion else { return }
         guard let snapshot = gameState?.snapshot else { return }
         let viewport = viewport(for: snapshot.boardSize)
         let geometry = BoardGeometry(size: snapshot.boardSize)
@@ -343,7 +353,7 @@ final class BrickPuzzleScene: SKScene {
         node.lineWidth = brick.kind == .mission || brick.isProtected ? 3 : 1
         container.addChild(node)
 
-        let label = SKLabelNode(text: brick.kind == .standard ? "\(brick.hitPoints)" : "\(brick.kind.shortLabel) \(brick.hitPoints)")
+        let label = SKLabelNode(text: "\(brick.kind.shortLabel) \(brick.hitPoints)")
         label.fontName = "AvenirNext-Bold"
         label.fontSize = max(11, viewport.cellSize * 0.24)
         label.fontColor = .white
@@ -600,7 +610,7 @@ private extension BrickKind {
 
     var shortLabel: String {
         switch self {
-        case .standard: ""
+        case .standard: "#"
         case .mission: "M"
         case .shield: "S"
         case .key: "K"

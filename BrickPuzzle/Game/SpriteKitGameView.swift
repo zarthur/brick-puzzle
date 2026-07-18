@@ -4,6 +4,7 @@ import SwiftUI
 struct SpriteKitGameView: View {
     let level: LevelDefinition
     let loadout: PowerupLoadout
+    let reduceMotion: Bool
     let onSnapshot: (GameSnapshot) -> Void
     let onResult: (AttemptResult) -> Void
 
@@ -15,11 +16,13 @@ struct SpriteKitGameView: View {
     init(
         level: LevelDefinition,
         loadout: PowerupLoadout = .empty,
+        reduceMotion: Bool = false,
         onSnapshot: @escaping (GameSnapshot) -> Void = { _ in },
         onResult: @escaping (AttemptResult) -> Void = { _ in }
     ) {
         self.level = level
         self.loadout = loadout
+        self.reduceMotion = reduceMotion
         self.onSnapshot = onSnapshot
         self.onResult = onResult
     }
@@ -59,7 +62,7 @@ struct SpriteKitGameView: View {
             }
         }
         .onAppear {
-            scene.configure(level: level, loadout: loadout) { snapshot, result in
+            scene.configure(level: level, loadout: loadout, reduceMotion: reduceMotion) { snapshot, result in
                 onSnapshot(snapshot)
                 usedPowerups = Set(snapshot.usedPowerups)
                 armedPowerups = Set(snapshot.armedPowerups)
