@@ -15,8 +15,23 @@ struct LevelBundleLoaderTests {
     func bundledCatalogOrder() throws {
         #expect(try LevelBundleLoader().loadAllLevels().map(\.id) == [
             "prototype-001", "prototype-002", "prototype-003", "prototype-004",
-            "prototype-005", "prototype-006", "prototype-007"
+            "prototype-005", "prototype-006", "prototype-007", "prototype-008",
+            "prototype-009", "prototype-010"
         ])
+    }
+
+    @Test("Elegant challenge levels combine mechanics and offer assisted routes")
+    func elegantChallengeContract() throws {
+        let levels = try LevelBundleLoader().loadAllLevels().filter {
+            ("prototype-008"..."prototype-010").contains($0.id)
+        }
+
+        #expect(levels.count == 3)
+        #expect(levels.allSatisfy { $0.metadata.difficulty == .hard })
+        #expect(levels.allSatisfy { $0.metadata.requiredMechanics.count >= 4 })
+        #expect(levels.allSatisfy { $0.maxPowerupLoadoutSize == 2 })
+        #expect(levels.allSatisfy { $0.availablePowerups.count >= 4 })
+        #expect(levels.allSatisfy { $0.starRules.threeStarRequiresNoPowerups })
     }
 
     @Test("Combination levels expose multiple mechanics and useful loadout choices")

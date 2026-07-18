@@ -12,7 +12,8 @@ struct ReplayRunnerTests {
 
         #expect(levels.map(\.id) == [
             "prototype-001", "prototype-002", "prototype-003", "prototype-004",
-            "prototype-005", "prototype-006", "prototype-007"
+            "prototype-005", "prototype-006", "prototype-007", "prototype-008",
+            "prototype-009", "prototype-010"
         ])
         #expect(replayLevelIDs == Set(levels.map(\.id)))
 
@@ -20,6 +21,30 @@ struct ReplayRunnerTests {
             let result = ReplayRunner().validate(replay)
             #expect(result.passed, Comment(rawValue: result.failureMessage ?? replay.levelID))
             #expect(result.actualOutcome == ReplayActualOutcome(completed: true, stars: 3))
+        }
+    }
+
+    @Test("Powerup-assisted late-level clears cannot earn three stars")
+    func assistedLateLevelClearsAreCapped() throws {
+        for levelID in ["prototype-008", "prototype-009", "prototype-010"] {
+            let cleanReplay = try ReplayBundleLoader().loadReplay(named: "\(levelID)-clean")
+            let firstShot = try #require(cleanReplay.shots.first)
+            let assistedReplay = ReplayFixture(
+                levelID: levelID,
+                selectedPowerups: [.precisionGuide],
+                shots: [
+                    ReplayShot(
+                        aimAngleDegrees: firstShot.aimAngleDegrees,
+                        usedPowerups: [.precisionGuide],
+                        destroyedBrickIDs: firstShot.destroyedBrickIDs
+                    )
+                ] + cleanReplay.shots.dropFirst(),
+                expectedOutcome: ReplayExpectedOutcome(completed: true, stars: 2)
+            )
+
+            let result = ReplayRunner().validate(assistedReplay)
+            #expect(result.passed, Comment(rawValue: result.failureMessage ?? levelID))
+            #expect(result.actualOutcome.stars == 2)
         }
     }
 
