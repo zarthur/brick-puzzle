@@ -36,13 +36,26 @@ jobs:
           xcrun simctl boot "$simulator_id" || true
           xcrun simctl bootstatus "$simulator_id" -b
 
-      - name: Run unit and UI tests
+      # XCUITest execution is temporarily disabled on macos-26 because Xcode 26.5
+      # cannot launch the runner (IDELaunchParametersSnapshot reports no debugger
+      # version). Keep compiling the UI target so source regressions still fail CI.
+      # Restore UI execution as part of https://github.com/zarthur/brick-puzzle/issues/51.
+      - name: Build app and all test targets
         run: |
-          xcodebuild test \
+          xcodebuild build-for-testing \
+            -project BrickPuzzle.xcodeproj \
+            -scheme BrickPuzzle \
+            -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}" \
+            -derivedDataPath "$RUNNER_TEMP/BrickPuzzleDerivedData"
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test-without-building \
             -project BrickPuzzle.xcodeproj \
             -scheme BrickPuzzle \
             -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}" \
             -derivedDataPath "$RUNNER_TEMP/BrickPuzzleDerivedData" \
+            -only-testing:BrickPuzzleTests \
             -resultBundlePath "$RUNNER_TEMP/BrickPuzzleTests.xcresult"
 
       - name: Upload test results
