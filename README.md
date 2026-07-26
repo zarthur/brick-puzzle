@@ -42,6 +42,8 @@ The catalog and replay tests require deterministic fixture ordering, unique leve
 
 - [Product Plan](ProjectManagement/product-management/product-plan.md)
 - [Research Sources](ProjectManagement/product-management/research-sources.md)
+- [Prototype Performance Sanity Check](ProjectManagement/quality/performance-sanity-check.md)
+- [First Playtest Checklist](ProjectManagement/quality/first-playtest-checklist.md)
 
 ## Product Pillars
 
@@ -117,3 +119,11 @@ Run focused UI tests:
 ```sh
 xcodebuild test -project BrickPuzzle.xcodeproj -scheme BrickPuzzle -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' -only-testing:BrickPuzzleUITests
 ```
+
+Run the deterministic high-ball-count benchmark:
+
+```sh
+xcodebuild test -project BrickPuzzle.xcodeproj -scheme BrickPuzzle -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' '-only-testing:BrickPuzzleTests/GamePerformanceTests/highBallCountShotPerformance()'
+```
+
+Use the [Prototype Performance Sanity Check](ProjectManagement/quality/performance-sanity-check.md) for the SpriteKit 60 FPS procedure and record a manual session with the [First Playtest Checklist](ProjectManagement/quality/first-playtest-checklist.md) before prototype bug triage.
