@@ -1,6 +1,95 @@
 import SpriteKit
 import UIKit
 
+struct FrameRateSnapshot: Equatable {
+    static let empty = FrameRateSnapshot(
+        currentFramesPerSecond: 0,
+        minimumFramesPerSecond: 0,
+        longestFrameDuration: 0,
+        hitchCount: 0,
+        sampledDuration: 0
+    )
+
+    let currentFramesPerSecond: Double
+    let minimumFramesPerSecond: Double
+    let longestFrameDuration: TimeInterval
+    let hitchCount: Int
+    let sampledDuration: TimeInterval
+
+    var meetsPrototypeThreshold: Bool {
+        minimumFramesPerSecond >= 55 && longestFrameDuration <= 0.1
+    }
+}
+
+struct FrameRateMonitor {
+    private let reportingInterval: TimeInterval
+    private let hitchThreshold: TimeInterval
+    private var firstTimestamp: TimeInterval?
+    private var lastTimestamp: TimeInterval?
+    private var reportingWindowStart: TimeInterval?
+    private var reportingWindowFrameCount = 0
+    private var minimumFramesPerSecond = Double.infinity
+    private var longestFrameDuration: TimeInterval = 0
+    private var hitchCount = 0
+
+    init(reportingInterval: TimeInterval = 0.5, hitchThreshold: TimeInterval = 0.1) {
+        self.reportingInterval = reportingInterval
+        self.hitchThreshold = hitchThreshold
+    }
+
+    mutating func reset() {
+        firstTimestamp = nil
+        lastTimestamp = nil
+        reportingWindowStart = nil
+        reportingWindowFrameCount = 0
+        minimumFramesPerSecond = .infinity
+        longestFrameDuration = 0
+        hitchCount = 0
+    }
+
+    mutating func recordFrame(at timestamp: TimeInterval) -> FrameRateSnapshot? {
+        guard timestamp.isFinite else { return nil }
+
+        guard let lastTimestamp else {
+            firstTimestamp = timestamp
+            reportingWindowStart = timestamp
+            self.lastTimestamp = timestamp
+            return nil
+        }
+
+        let frameDuration = timestamp - lastTimestamp
+        guard frameDuration > 0 else { return nil }
+        self.lastTimestamp = timestamp
+
+        reportingWindowFrameCount += 1
+        longestFrameDuration = max(longestFrameDuration, frameDuration)
+        if frameDuration > hitchThreshold {
+            hitchCount += 1
+        }
+
+        guard let reportingWindowStart,
+              let firstTimestamp,
+              timestamp - reportingWindowStart >= reportingInterval else {
+            return nil
+        }
+
+        let reportingWindowDuration = timestamp - reportingWindowStart
+        let currentFramesPerSecond = Double(reportingWindowFrameCount) / reportingWindowDuration
+        minimumFramesPerSecond = min(minimumFramesPerSecond, currentFramesPerSecond)
+        let snapshot = FrameRateSnapshot(
+            currentFramesPerSecond: currentFramesPerSecond,
+            minimumFramesPerSecond: minimumFramesPerSecond,
+            longestFrameDuration: longestFrameDuration,
+            hitchCount: hitchCount,
+            sampledDuration: timestamp - firstTimestamp
+        )
+
+        self.reportingWindowStart = timestamp
+        reportingWindowFrameCount = 0
+        return snapshot
+    }
+}
+
 final class BrickPuzzleScene: SKScene {
     private var gameState: GameState?
     private var activeTouch: UITouch?
@@ -9,6 +98,8 @@ final class BrickPuzzleScene: SKScene {
     private var pendingTargetPowerup: PowerupDefinition?
     private var reduceMotion = false
     private var onSnapshotChange: ((GameSnapshot, AttemptResult?) -> Void)?
+    private var frameRateMonitor = FrameRateMonitor()
+    private var onPerformanceSnapshot: ((FrameRateSnapshot) -> Void)?
 
     override init(size: CGSize) {
         super.init(size: size)
@@ -28,14 +119,25 @@ final class BrickPuzzleScene: SKScene {
         level: LevelDefinition,
         loadout: PowerupLoadout = .empty,
         reduceMotion: Bool = false,
-        onSnapshotChange: ((GameSnapshot, AttemptResult?) -> Void)? = nil
+        onSnapshotChange: ((GameSnapshot, AttemptResult?) -> Void)? = nil,
+        onPerformanceSnapshot: ((FrameRateSnapshot) -> Void)? = nil
     ) {
         self.onSnapshotChange = onSnapshotChange
+        self.onPerformanceSnapshot = onPerformanceSnapshot
         self.reduceMotion = reduceMotion
         gameState = try? GameState(level: level, loadout: loadout)
         pendingTargetPowerup = nil
+        frameRateMonitor.reset()
+        onPerformanceSnapshot?(.empty)
         renderSnapshot()
         notifySnapshotChange()
+    }
+
+    override func update(_ currentTime: TimeInterval) {
+        super.update(currentTime)
+        if let snapshot = frameRateMonitor.recordFrame(at: currentTime) {
+            onPerformanceSnapshot?(snapshot)
+        }
     }
 
     func activatePowerup(_ powerup: PowerupDefinition) {
@@ -206,10 +308,19 @@ final class BrickPuzzleScene: SKScene {
 
         isAnimatingShot = true
         childNode(withName: "aim-guide")?.removeFromParent()
+        childNode(withName: "aim-guide-impact")?.removeFromParent()
         childNode(withName: "instruction-label")?.removeFromParent()
 
         let viewport = viewport(for: snapshot.boardSize)
         let ballIDs = Set(resolution.frames.flatMap { $0.balls.map(\.id) }).sorted()
+        if let baseBallCount = gameState?.baseBallCount,
+           let ballCount = resolution.frames.map({ $0.balls.count }).max(),
+           ballCount > baseBallCount {
+            renderExtraBallsLaunchFeedback(
+                additionalBalls: ballCount - baseBallCount,
+                viewport: viewport
+            )
+        }
 
         var previousBricks = resolution.frames[0].bricks
         for (index, frame) in resolution.frames.dropFirst().enumerated() where frame.bricks != previousBricks {
@@ -223,7 +334,8 @@ final class BrickPuzzleScene: SKScene {
             previousBricks = bricks
         }
 
-        for ballID in ballIDs {
+        let ballColors: [UIColor] = [.systemTeal, .systemYellow, .systemPink]
+        for (ballIndex, ballID) in ballIDs.enumerated() {
             let samples = resolution.frames.compactMap { frame -> (Double, BoardPoint)? in
                 guard let ball = frame.balls.first(where: { $0.id == ballID }) else { return nil }
                 return (frame.elapsedTime, ball.position)
@@ -233,9 +345,9 @@ final class BrickPuzzleScene: SKScene {
             let ball = SKShapeNode(circleOfRadius: max(4, viewport.cellSize * 0.12))
             ball.name = "active-ball-\(ballID)"
             ball.position = viewport.scenePoint(for: firstSample.1)
-            ball.fillColor = .white
-            ball.strokeColor = .systemTeal
-            ball.lineWidth = 2
+            ball.fillColor = ballColors[ballIndex % ballColors.count]
+            ball.strokeColor = .white
+            ball.lineWidth = 2.5
             ball.zPosition = 20
             addChild(ball)
 
@@ -291,6 +403,27 @@ final class BrickPuzzleScene: SKScene {
         }
     }
 
+    private func renderExtraBallsLaunchFeedback(additionalBalls: Int, viewport: BoardViewport) {
+        let label = SKLabelNode(text: "EXTRA BALLS +\(additionalBalls)")
+        label.name = "extra-balls-feedback"
+        label.fontName = "AvenirNext-Bold"
+        label.fontSize = 16
+        label.fontColor = .systemYellow
+        label.horizontalAlignmentMode = .center
+        label.verticalAlignmentMode = .center
+        label.position = CGPoint(x: size.width / 2, y: viewport.boardRect.maxY - 18)
+        label.zPosition = 40
+        addChild(label)
+        label.run(.sequence([
+            .group([
+                .scale(to: 1.12, duration: 0.15),
+                .wait(forDuration: 0.15)
+            ]),
+            .fadeOut(withDuration: 0.35),
+            .removeFromParent()
+        ]))
+    }
+
     private func renderSnapshot(guideTarget: CGPoint? = nil, guideIsValid: Bool = true) {
         removeAllChildren()
 
@@ -305,7 +438,7 @@ final class BrickPuzzleScene: SKScene {
             renderBrick(brick, viewport: viewport)
         }
 
-        if let dangerLineRow = gameState?.configuredDangerLineRow {
+        if let dangerLineRow = gameState?.effectiveDangerLineRow {
             renderDangerLine(row: dangerLineRow, viewport: viewport)
         }
 
@@ -422,6 +555,14 @@ final class BrickPuzzleScene: SKScene {
            let preview = precisionGuidePreview(from: launcher, through: target, boardRect: viewport.boardRect) {
             path.addLine(to: preview.impact)
             path.addLine(to: preview.reflectedEnd)
+            let impact = SKShapeNode(circleOfRadius: max(5, viewport.cellSize * 0.12))
+            impact.name = "aim-guide-impact"
+            impact.position = preview.impact
+            impact.fillColor = .systemYellow
+            impact.strokeColor = .white
+            impact.lineWidth = 2
+            impact.zPosition = 10
+            addChild(impact)
         } else {
             path.addLine(to: target)
         }
@@ -465,7 +606,7 @@ final class BrickPuzzleScene: SKScene {
                 }
             }
         }
-        guard let exit = candidates.max(by: { $0.time < $1.time }) else { return nil }
+        guard let exit = candidates.min(by: { $0.time < $1.time }) else { return nil }
         let reflectedDirection = CGVector(
             dx: exit.verticalWall ? -direction.dx : direction.dx,
             dy: exit.verticalWall ? direction.dy : -direction.dy
@@ -510,12 +651,28 @@ final class BrickPuzzleScene: SKScene {
                     : "Tap a cell for the bomb"
                 color = .systemOrange
             } else {
-                text = "Touch and hold the field to aim"
-                color = .secondaryLabel
+                if snapshot.armedPowerups.contains(.precisionGuide) {
+                    text = "Guide armed — drag to preview a bounce"
+                    color = .systemYellow
+                } else if snapshot.armedPowerups.contains(.extraBalls) {
+                    text = "Extra Balls armed — next shot launches \(gameState?.nextShotBallCount ?? 13) balls"
+                    color = .systemTeal
+                } else {
+                    text = "10-ball volley — touch and hold the field to aim"
+                    color = .secondaryLabel
+                }
             }
         case .aiming:
-            text = isAimCancelled ? "Release to cancel" : "Release to fire"
-            color = isAimCancelled ? .systemRed : .systemTeal
+            if isAimCancelled {
+                text = "Release to cancel"
+                color = .systemRed
+            } else if snapshot.armedPowerups.contains(.precisionGuide) {
+                text = "Guide active — release to fire"
+                color = .systemYellow
+            } else {
+                text = "Release to fire"
+                color = .systemTeal
+            }
         case .resolving:
             text = "Resolving shot…"
             color = .secondaryLabel

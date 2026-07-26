@@ -206,9 +206,9 @@ extension LevelDefinition {
         columns: 5,
         rows: 6,
         bricks: [
-            BrickDefinition(id: "mission-center", row: 1, column: 2, kind: .mission, hitPoints: 1),
-            BrickDefinition(id: "standard-left", row: 2, column: 1, kind: .standard, hitPoints: 1),
-            BrickDefinition(id: "standard-right", row: 2, column: 3, kind: .standard, hitPoints: 1)
+            BrickDefinition(id: "mission-center", row: 1, column: 2, kind: .mission, hitPoints: 10),
+            BrickDefinition(id: "standard-left", row: 2, column: 1, kind: .standard, hitPoints: 10),
+            BrickDefinition(id: "standard-right", row: 2, column: 3, kind: .standard, hitPoints: 10)
         ],
         availablePowerups: [.extraBalls, .precisionGuide],
         maxPowerupLoadoutSize: 1,

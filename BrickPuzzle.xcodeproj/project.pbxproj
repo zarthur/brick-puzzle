@@ -58,6 +58,9 @@
 		100000000000000000000111 /* product-plan.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "product-plan.md"; sourceTree = "<group>"; };
 		100000000000000000000112 /* research-sources.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "research-sources.md"; sourceTree = "<group>"; };
 		100000000000000000000113 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		100000000000000000000501 /* BrickPuzzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BrickPuzzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000502 /* BrickPuzzleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickPuzzleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000503 /* BrickPuzzleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickPuzzleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000001101 /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
 		100000000000000000001102 /* GameStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateTests.swift; sourceTree = "<group>"; };
 		300000000000000000000101 /* LevelBundleLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelBundleLoader.swift; sourceTree = "<group>"; };
@@ -67,9 +70,6 @@
 		400000000000000000000102 /* ReplayRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayRunnerTests.swift; sourceTree = "<group>"; };
 		400000000000000000000103 /* Replays */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Replays; sourceTree = "<group>"; };
 		500000000000000000000101 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		100000000000000000000501 /* BrickPuzzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BrickPuzzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		100000000000000000000502 /* BrickPuzzleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickPuzzleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		100000000000000000000503 /* BrickPuzzleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickPuzzleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,14 +133,6 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		100000000000000000001701 /* Domain */ = {
-			isa = PBXGroup;
-			children = (
-				100000000000000000001101 /* GameState.swift */,
-			);
-			path = Domain;
-			sourceTree = "<group>";
-		};
 		100000000000000000000704 /* Game */ = {
 			isa = PBXGroup;
 			children = (
@@ -157,22 +149,6 @@
 				100000000000000000000106 /* PowerupDefinition.swift */,
 			);
 			path = Models;
-			sourceTree = "<group>";
-		};
-		300000000000000000000701 /* Levels */ = {
-			isa = PBXGroup;
-			children = (
-				300000000000000000000101 /* LevelBundleLoader.swift */,
-			);
-			path = Levels;
-			sourceTree = "<group>";
-		};
-		400000000000000000000701 /* Replays */ = {
-			isa = PBXGroup;
-			children = (
-				400000000000000000000101 /* ReplayValidation.swift */,
-			);
-			path = Replays;
 			sourceTree = "<group>";
 		};
 		100000000000000000000706 /* Resources */ = {
@@ -213,6 +189,16 @@
 			path = ProjectManagement;
 			sourceTree = "<group>";
 		};
+		100000000000000000000711 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000501 /* BrickPuzzle.app */,
+				100000000000000000000502 /* BrickPuzzleTests.xctest */,
+				100000000000000000000503 /* BrickPuzzleUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		100000000000000000000712 /* product-management */ = {
 			isa = PBXGroup;
 			children = (
@@ -222,14 +208,28 @@
 			path = "product-management";
 			sourceTree = "<group>";
 		};
-		100000000000000000000711 /* Products */ = {
+		100000000000000000001701 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
-				100000000000000000000501 /* BrickPuzzle.app */,
-				100000000000000000000502 /* BrickPuzzleTests.xctest */,
-				100000000000000000000503 /* BrickPuzzleUITests.xctest */,
+				100000000000000000001101 /* GameState.swift */,
 			);
-			name = Products;
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		300000000000000000000701 /* Levels */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000101 /* LevelBundleLoader.swift */,
+			);
+			path = Levels;
+			sourceTree = "<group>";
+		};
+		400000000000000000000701 /* Replays */ = {
+			isa = PBXGroup;
+			children = (
+				400000000000000000000101 /* ReplayValidation.swift */,
+			);
+			path = Replays;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -536,6 +536,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"BrickPuzzle/Resources/Preview Content\"";
+				DEVELOPMENT_TEAM = 28K5J36J9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Brick Puzzle";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.puzzle-games";
@@ -547,7 +548,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.brickpuzzle;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.arthurneuman.brick-puzzle";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -564,6 +565,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"BrickPuzzle/Resources/Preview Content\"";
+				DEVELOPMENT_TEAM = 28K5J36J9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Brick Puzzle";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.puzzle-games";
@@ -575,7 +577,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.brickpuzzle;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.arthurneuman.brick-puzzle";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

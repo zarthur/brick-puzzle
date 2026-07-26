@@ -4,10 +4,10 @@
   "columns": 5,
   "rows": 7,
   "bricks": [
-    { "id": "mission-gate", "row": 1, "column": 2, "kind": "mission", "hitPoints": 1 },
-    { "id": "key-gate", "row": 3, "column": 2, "kind": "key", "hitPoints": 1 },
-    { "id": "side-left", "row": 2, "column": 0, "kind": "standard", "hitPoints": 1 },
-    { "id": "side-right", "row": 2, "column": 4, "kind": "standard", "hitPoints": 1 }
+    { "id": "mission-gate", "row": 1, "column": 2, "kind": "mission", "hitPoints": 10 },
+    { "id": "key-gate", "row": 3, "column": 2, "kind": "key", "hitPoints": 10 },
+    { "id": "side-left", "row": 2, "column": 0, "kind": "standard", "hitPoints": 10 },
+    { "id": "side-right", "row": 2, "column": 4, "kind": "standard", "hitPoints": 10 }
   ],
   "availablePowerups": ["precisionGuide", "extraBalls"],
   "maxPowerupLoadoutSize": 1,
