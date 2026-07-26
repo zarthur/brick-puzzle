@@ -33,12 +33,12 @@ The ceiling is a regression tripwire rather than a microbenchmark baseline. When
 ## SpriteKit Frame-Rate Procedure
 
 1. Boot an iPhone 17 simulator running iOS 26.5 and close unrelated simulator apps.
-2. Build and launch the Debug scheme without enabling Reduce Motion.
-3. In Xcode, open the Debug navigator and display FPS, CPU, and memory gauges. For a trace suitable for later comparison, select Product → Profile and use the **Game Performance** template.
+2. Add `-performance-overlay` to the app launch arguments in the Xcode scheme, then build and launch the Debug scheme without enabling Reduce Motion. The overlay is opt-in and never appears in a normal player launch.
+3. The overlay reports the current and minimum measured SpriteKit frame rate, the longest frame, and hitch count. It considers the prototype threshold met only when the observed minimum is at least 55 FPS and the longest frame is at most 100 ms. Use the Debug navigator for CPU and memory gauges; for a trace suitable for later comparison, select Product → Profile and use the **Game Performance** template.
 4. Play level 1 without powerups as the normal-load sample.
 5. Play level 6 with Extra Balls selected and activated; aim through the center splitter as the high-ball-count sample.
 6. Play level 10 with Extra Balls selected and activated as the combined-mechanic sample.
-7. Observe each shot from launch until every ball returns. Record the minimum sustained FPS, visible hitches, CPU peak, memory peak, simulator/runtime, Mac model, and whether a debugger or recording was attached.
+7. For each shot, wait until the overlay has displayed at least one non-zero FPS sample. Record the minimum FPS, longest frame, hitch count, visible hitches, CPU peak, memory peak, simulator/runtime, Mac model, and whether a debugger or recording was attached.
 8. Repeat each sample three times. Pass when all runs remain in the simulator sanity band without repeated hitches.
 
 ## Initial Validation Record
@@ -57,7 +57,7 @@ The ceiling is a regression tripwire rather than a microbenchmark baseline. When
 
 - Simulator FPS reflects both the app and host workload and is not evidence for every supported physical iPhone.
 - Debug builds include instrumentation and are slower than optimized release builds.
-- The automated time ceiling covers deterministic domain resolution, not GPU presentation, CPU utilization, or memory growth.
+- The automated time ceiling covers deterministic domain resolution, not GPU presentation, CPU utilization, or memory growth. The opt-in overlay samples `SKScene.update(_:)`; it is a practical simulator signal, not a physical-device profiling replacement.
 - CA Event, IOSurface, SpriteKit focus-caching, and missing LLDB metadata messages can be simulator diagnostics rather than app failures; use the test result, crash report, and visible behavior to classify them.
 
 Before release, repeat the Game Performance trace on the oldest supported physical iPhone using a Release configuration and archive the trace with release QA artifacts.

@@ -1,6 +1,16 @@
 import Testing
 @testable import BrickPuzzle
 
+private let singleBallSimulation = GameSimulationConfiguration(
+    ballRadius: 0.12,
+    ballSpeed: 7,
+    fixedTimeStep: 1.0 / 120.0,
+    maximumSteps: 2_400,
+    animationSampleStride: 2,
+    maximumActiveBalls: 8,
+    splitterAngleOffsetDegrees: 18
+)
+
 @Suite("Game state")
 struct GameStateTests {
     @Test("Prototype level initializes deterministic board state")
@@ -34,7 +44,7 @@ struct GameStateTests {
 
     @Test("Aim can be cancelled without consuming a shot")
     func aimCancellationDoesNotConsumeShot() throws {
-        var state = GameState(level: simpleLevel(hitPoints: 1))
+        var state = GameState(level: simpleLevel(hitPoints: 1), simulation: singleBallSimulation)
 
         try state.beginAiming()
         try state.updateAim(angleDegrees: 90)
@@ -47,7 +57,7 @@ struct GameStateTests {
 
     @Test("Shot lifecycle rejects invalid input")
     func shotLifecycleRejectsInvalidInput() throws {
-        var state = GameState(level: simpleLevel(hitPoints: 1))
+        var state = GameState(level: simpleLevel(hitPoints: 1), simulation: singleBallSimulation)
 
         #expect(throws: GameInputError.invalidPhase) {
             try state.fire()
@@ -62,7 +72,7 @@ struct GameStateTests {
 
     @Test("A direct shot damages a brick and completes the objective")
     func directShotCompletesObjective() throws {
-        var state = GameState(level: simpleLevel(hitPoints: 1))
+        var state = GameState(level: simpleLevel(hitPoints: 1), simulation: singleBallSimulation)
 
         try state.beginAiming()
         try state.updateAim(angleDegrees: 90)
@@ -80,23 +90,54 @@ struct GameStateTests {
 
     @Test("Resolved shots return to idle and preserve damage for another turn")
     func multipleTurnsPreserveDamage() throws {
-        var state = GameState(level: simpleLevel(hitPoints: 2))
+        var state = GameState(level: simpleLevel(hitPoints: 2), simulation: singleBallSimulation)
 
-        try fireStraightShot(in: &state)
+        let firstResolution = try fireStraightShot(in: &state)
         #expect(state.snapshot.turnPhase == .idle)
         #expect(state.snapshot.shotCount == 1)
         #expect(state.snapshot.activeBricks.first?.hitPoints == 1)
+        #expect(state.snapshot.activeBricks.first?.coordinate == BoardCoordinate(row: 1, column: 1))
+        #expect(firstResolution.finalSnapshot.activeBricks.first?.coordinate == BoardCoordinate(row: 1, column: 1))
+        #expect(firstResolution.finalSnapshot.shotHistory.last?.events.contains(where: { $0.kind == .bricksAdvanced }) == true)
 
-        try fireStraightShot(in: &state)
+        _ = try fireStraightShot(in: &state)
         #expect(state.snapshot.turnPhase == .won)
         #expect(state.snapshot.shotCount == 2)
         #expect(state.snapshot.shotHistory.count == 2)
         #expect(state.snapshot.activeBricks.isEmpty)
     }
 
+    @Test("A brick reaching the default bottom danger line fails after descent")
+    func defaultDangerLineFailsAfterBrickAdvance() throws {
+        let level = LevelDefinition(
+            id: "default-danger-line",
+            title: "Default Danger Line",
+            columns: 3,
+            rows: 3,
+            bricks: [
+                BrickDefinition(row: 1, column: 1, kind: .mission, hitPoints: 2)
+            ],
+            availablePowerups: [],
+            maxPowerupLoadoutSize: 0,
+            starRules: StarRules(
+                twoStarShotLimit: 3,
+                threeStarRequiresNoPowerups: true,
+                threeStarShotLimit: 2
+            )
+        )
+        var state = GameState(level: level, simulation: singleBallSimulation)
+
+        let resolution = try fireStraightShot(in: &state)
+
+        #expect(state.snapshot.turnPhase == .failed)
+        #expect(state.snapshot.terminalReason == .dangerLineCrossed)
+        #expect(state.snapshot.activeBricks.first?.coordinate == BoardCoordinate(row: 2, column: 1))
+        #expect(resolution.finalSnapshot.terminalReason == .dangerLineCrossed)
+    }
+
     @Test("Shot playback exposes hit point changes and destruction at impact time")
     func shotPlaybackUpdatesBricksAtImpact() throws {
-        var damagedState = GameState(level: simpleLevel(hitPoints: 2))
+        var damagedState = GameState(level: simpleLevel(hitPoints: 2), simulation: singleBallSimulation)
         try damagedState.beginAiming()
         try damagedState.updateAim(angleDegrees: 90)
         let damagedResolution = try damagedState.fire()
@@ -108,7 +149,7 @@ struct GameStateTests {
         #expect(damageFrame.elapsedTime < damagedEndTime)
         #expect(damageFrame.bricks.first?.isDestroyed == false)
 
-        var destroyedState = GameState(level: simpleLevel(hitPoints: 1))
+        var destroyedState = GameState(level: simpleLevel(hitPoints: 1), simulation: singleBallSimulation)
         try destroyedState.beginAiming()
         try destroyedState.updateAim(angleDegrees: 90)
         let destroyedResolution = try destroyedState.fire()
@@ -123,7 +164,7 @@ struct GameStateTests {
 
     @Test("Wall bounces stay inside the playable board")
     func wallBounceStaysInsideBoard() throws {
-        var state = GameState(level: simpleLevel(hitPoints: 5))
+        var state = GameState(level: simpleLevel(hitPoints: 5), simulation: singleBallSimulation)
 
         try state.beginAiming()
         try state.updateAim(angleDegrees: 25)
@@ -137,9 +178,9 @@ struct GameStateTests {
 
     @Test("Shot limit produces a terminal failure and blocks further aiming")
     func shotLimitFailsAttempt() throws {
-        var state = GameState(level: simpleLevel(hitPoints: 2, shotLimit: 1))
+        var state = GameState(level: simpleLevel(hitPoints: 2, shotLimit: 1), simulation: singleBallSimulation)
 
-        try fireStraightShot(in: &state)
+        _ = try fireStraightShot(in: &state)
 
         #expect(state.snapshot.turnPhase == .failed)
         #expect(state.snapshot.terminalReason == .shotLimitReached)
@@ -168,9 +209,9 @@ struct GameStateTests {
             ),
             dangerLineRow: 3
         )
-        var state = GameState(level: level)
+        var state = GameState(level: level, simulation: singleBallSimulation)
 
-        try fireStraightShot(in: &state)
+        _ = try fireStraightShot(in: &state)
 
         #expect(state.snapshot.turnPhase == .failed)
         #expect(state.snapshot.terminalReason == .dangerLineCrossed)
@@ -196,10 +237,10 @@ struct GameStateTests {
         )
     }
 
-    private func fireStraightShot(in state: inout GameState) throws {
+    private func fireStraightShot(in state: inout GameState) throws -> ShotResolution {
         try state.beginAiming()
         try state.updateAim(angleDegrees: 90)
-        _ = try state.fire()
+        return try state.fire()
     }
 }
 
@@ -337,8 +378,8 @@ struct BrickMechanicsTests {
             brick("mission", row: 0, column: 0, kind: .mission, hitPoints: 5),
             brick("splitter", row: 2, column: 1, kind: .splitter, hitPoints: 2)
         ])
-        var first = GameState(level: splitterLevel)
-        var second = GameState(level: splitterLevel)
+        var first = GameState(level: splitterLevel, simulation: singleBallSimulation)
+        var second = GameState(level: splitterLevel, simulation: singleBallSimulation)
 
         let firstResolution = try fireStraightShot(in: &first)
         let secondResolution = try fireStraightShot(in: &second)
@@ -373,7 +414,7 @@ struct BrickMechanicsTests {
             bricks: [brick("mission", row: 0, column: 0, kind: .mission, hitPoints: 50)]
                 + contactBricks
         )
-        var state = GameState(level: contactLevel)
+        var state = GameState(level: contactLevel, simulation: singleBallSimulation)
 
         let resolution = try fireStraightShot(in: &state)
         let firstContactFrame = try #require(resolution.frames.first { frame in
@@ -487,10 +528,21 @@ struct PowerupAndScoringTests {
         }
     }
 
-    @Test("Extra Balls deterministically adds balls to the next shot")
+    @Test("A standard volley emits ten balls in sequence and Extra Balls adds three")
     func extraBallsModifiesNextShot() throws {
+        var standardState = GameState(level: powerupLevel(missionHitPoints: 50))
+        try standardState.beginAiming()
+        try standardState.updateAim(angleDegrees: 90)
+        let standardResolution = try standardState.fire()
+        #expect(standardResolution.frames.first?.balls.count == 1)
+        #expect(standardResolution.frames.map { $0.balls.count }.max() == 10)
+        let secondBallLaunch = try #require(standardResolution.frames.first { frame in
+            frame.balls.contains { $0.id == "shot-1-ball-2" }
+        })
+        #expect(secondBallLaunch.elapsedTime >= 0.08)
+
         var state = try GameState(
-            level: powerupLevel(missionHitPoints: 5),
+            level: powerupLevel(missionHitPoints: 50),
             loadout: PowerupLoadout(selectedPowerups: [.extraBalls])
         )
         try state.activatePowerup(.extraBalls)
@@ -498,7 +550,12 @@ struct PowerupAndScoringTests {
         try state.updateAim(angleDegrees: 90)
         let resolution = try state.fire()
 
-        #expect(resolution.frames.first?.balls.count == 3)
+        #expect(resolution.frames.first?.balls.count == 1)
+        #expect(resolution.frames.map { $0.balls.count }.max() == 13)
+        let separatedFrame = try #require(resolution.frames.first { frame in
+            frame.balls.count == 13 && Set(frame.balls.map(\.position)).count == 13
+        })
+        #expect(separatedFrame.balls.count == 13)
         #expect(state.snapshot.armedPowerups.isEmpty)
         #expect(state.snapshot.usedPowerups == [.extraBalls])
     }
@@ -588,7 +645,7 @@ struct PowerupAndScoringTests {
             id: "scoring",
             title: "Scoring",
             columns: 3,
-            rows: 3,
+            rows: 7,
             bricks: [brick("mission", row: 0, column: 0, kind: .mission)],
             availablePowerups: [.extraBalls],
             maxPowerupLoadoutSize: 1,
@@ -692,5 +749,60 @@ struct GamePerformanceTests {
         try state.beginAiming()
         try state.updateAim(angleDegrees: 90)
         return try state.fire()
+    }
+}
+
+@Suite("Frame-rate monitoring")
+struct FrameRateMonitorTests {
+    @Test("Reports sustained frame rate and retains the minimum sample")
+    func reportsSustainedFrameRate() throws {
+        var monitor = FrameRateMonitor(reportingInterval: 0.5)
+        let firstReport = monitor.recordFrame(at: 0)
+        #expect(firstReport == nil)
+
+        var snapshot: FrameRateSnapshot?
+        for frame in 1...60 {
+            let timestamp = Double(frame) / 60
+            snapshot = monitor.recordFrame(at: timestamp) ?? snapshot
+        }
+
+        let report = try #require(snapshot)
+        #expect((59...61).contains(Int(report.currentFramesPerSecond.rounded())))
+        #expect((59...61).contains(Int(report.minimumFramesPerSecond.rounded())))
+        #expect(report.longestFrameDuration < 0.02)
+        #expect(report.hitchCount == 0)
+        #expect(report.meetsPrototypeThreshold)
+    }
+
+    @Test("Records long frames as hitches")
+    func recordsHitches() throws {
+        var monitor = FrameRateMonitor(reportingInterval: 0.5, hitchThreshold: 0.1)
+        let firstReport = monitor.recordFrame(at: 0)
+        let secondReport = monitor.recordFrame(at: 1.0 / 60.0)
+        let thirdReport = monitor.recordFrame(at: 0.2)
+        #expect(firstReport == nil)
+        #expect(secondReport == nil)
+        #expect(thirdReport == nil)
+
+        let finalReport = monitor.recordFrame(at: 0.51)
+        let report = try #require(finalReport)
+        #expect(report.hitchCount == 2)
+        #expect(report.longestFrameDuration == 0.31)
+        #expect(!report.meetsPrototypeThreshold)
+    }
+
+    @Test("Reset discards an incomplete sample")
+    func resetDiscardsPreviousSample() throws {
+        var monitor = FrameRateMonitor(reportingInterval: 0.5)
+        _ = monitor.recordFrame(at: 0)
+        _ = monitor.recordFrame(at: 0.25)
+        monitor.reset()
+
+        let firstReport = monitor.recordFrame(at: 1)
+        #expect(firstReport == nil)
+        let finalReport = monitor.recordFrame(at: 1.5)
+        let report = try #require(finalReport)
+        #expect(report.sampledDuration == 0.5)
+        #expect(report.hitchCount == 1)
     }
 }

@@ -6,12 +6,15 @@ struct AppRootView: View {
 
     private let levels: [LevelDefinition]
     private let testResult: AttemptResult?
+    private let performanceOverlayEnabled: Bool
 
     init() {
         levels = (try? LevelBundleLoader().loadAllLevels()) ?? [.prototype]
-        testResult = Self.testResult(
-            from: ProcessInfo.processInfo.arguments,
-            environment: ProcessInfo.processInfo.environment
+        let processInfo = ProcessInfo.processInfo
+        testResult = Self.testResult(from: processInfo.arguments, environment: processInfo.environment)
+        performanceOverlayEnabled = Self.isPerformanceOverlayEnabled(
+            arguments: processInfo.arguments,
+            environment: processInfo.environment
         )
     }
 
@@ -44,7 +47,11 @@ struct AppRootView: View {
                     SettingsView(settings: $appState.settings)
                 case .loadout(let levelID):
                     if let level = level(withID: levelID) {
-                        AttemptFlowView(level: level, appState: appState) {
+                        AttemptFlowView(
+                            level: level,
+                            appState: appState,
+                            performanceOverlayEnabled: performanceOverlayEnabled
+                        ) {
                             path = [.levelSelect]
                         }
                     }
@@ -81,6 +88,13 @@ struct AppRootView: View {
         default:
             return nil
         }
+    }
+
+    private static func isPerformanceOverlayEnabled(
+        arguments: [String],
+        environment: [String: String]
+    ) -> Bool {
+        arguments.contains("-performance-overlay") || environment["PERFORMANCE_OVERLAY"] == "1"
     }
 }
 
@@ -196,6 +210,7 @@ private struct SettingsView: View {
 private struct AttemptFlowView: View {
     let level: LevelDefinition
     @ObservedObject var appState: AppState
+    let performanceOverlayEnabled: Bool
     let continueToLevels: () -> Void
 
     @State private var selectedPowerups: Set<PowerupDefinition> = []
@@ -245,6 +260,7 @@ private struct AttemptFlowView: View {
                 level: level,
                 loadout: PowerupLoadout(selectedPowerups: selectedPowerups.sorted { $0.rawValue < $1.rawValue }),
                 reduceMotion: appState.settings.reduceMotion,
+                performanceOverlayEnabled: performanceOverlayEnabled,
                 onSnapshot: { snapshot = $0 }
             ) { completedResult in
                 result = completedResult

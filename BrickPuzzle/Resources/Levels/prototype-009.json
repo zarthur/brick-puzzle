@@ -2,15 +2,15 @@
   "id": "prototype-009",
   "title": "Powder Key",
   "columns": 8,
-  "rows": 9,
+  "rows": 10,
   "bricks": [
-    { "id": "mission-cache", "row": 1, "column": 4, "kind": "mission", "hitPoints": 1 },
-    { "id": "shield-cache", "row": 2, "column": 4, "kind": "shield", "hitPoints": 1 },
-    { "id": "bomb-lock", "row": 3, "column": 4, "kind": "bomb", "hitPoints": 1 },
-    { "id": "key-left", "row": 5, "column": 1, "kind": "key", "hitPoints": 1 },
-    { "id": "splitter-right", "row": 5, "column": 6, "kind": "splitter", "hitPoints": 1 },
-    { "id": "buttress-left", "row": 4, "column": 3, "kind": "standard", "hitPoints": 3 },
-    { "id": "buttress-right", "row": 4, "column": 5, "kind": "standard", "hitPoints": 3 }
+    { "id": "mission-cache", "row": 1, "column": 4, "kind": "mission", "hitPoints": 10 },
+    { "id": "shield-cache", "row": 2, "column": 4, "kind": "shield", "hitPoints": 10 },
+    { "id": "bomb-lock", "row": 3, "column": 4, "kind": "bomb", "hitPoints": 10 },
+    { "id": "key-left", "row": 5, "column": 1, "kind": "key", "hitPoints": 10 },
+    { "id": "splitter-right", "row": 5, "column": 6, "kind": "splitter", "hitPoints": 10 },
+    { "id": "buttress-left", "row": 4, "column": 3, "kind": "standard", "hitPoints": 30 },
+    { "id": "buttress-right", "row": 4, "column": 5, "kind": "standard", "hitPoints": 30 }
   ],
   "availablePowerups": ["bomb", "shieldBreaker", "extraBalls", "precisionGuide", "rowClear"],
   "maxPowerupLoadoutSize": 2,

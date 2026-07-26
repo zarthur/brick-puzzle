@@ -4,11 +4,11 @@
   "columns": 7,
   "rows": 8,
   "bricks": [
-    { "id": "mission-left", "row": 1, "column": 2, "kind": "mission", "hitPoints": 1 },
-    { "id": "mission-right", "row": 1, "column": 4, "kind": "mission", "hitPoints": 1 },
-    { "id": "bomb-center", "row": 2, "column": 3, "kind": "bomb", "hitPoints": 1 },
-    { "id": "guard-left", "row": 3, "column": 1, "kind": "standard", "hitPoints": 2 },
-    { "id": "guard-right", "row": 3, "column": 5, "kind": "standard", "hitPoints": 2 }
+    { "id": "mission-left", "row": 1, "column": 2, "kind": "mission", "hitPoints": 10 },
+    { "id": "mission-right", "row": 1, "column": 4, "kind": "mission", "hitPoints": 10 },
+    { "id": "bomb-center", "row": 2, "column": 3, "kind": "bomb", "hitPoints": 10 },
+    { "id": "guard-left", "row": 3, "column": 1, "kind": "standard", "hitPoints": 20 },
+    { "id": "guard-right", "row": 3, "column": 5, "kind": "standard", "hitPoints": 20 }
   ],
   "availablePowerups": ["bomb", "rowClear", "precisionGuide", "extraBalls"],
   "maxPowerupLoadoutSize": 2,

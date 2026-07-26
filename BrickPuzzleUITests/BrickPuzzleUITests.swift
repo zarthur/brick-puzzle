@@ -8,6 +8,7 @@ final class BrickPuzzleUITests: XCTestCase {
     @MainActor
     func testMenuLevelSelectAndGameplayFlow() throws {
         let app = XCUIApplication()
+        app.launchArguments += ["-performance-overlay"]
         app.launch()
 
         XCTAssertTrue(app.staticTexts["Brick Puzzle"].waitForExistence(timeout: 3))
@@ -22,6 +23,29 @@ final class BrickPuzzleUITests: XCTestCase {
         XCTAssertTrue(app.otherElements["game-hud"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["game-level-select"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["powerup-extraBalls"].waitForExistence(timeout: 3))
+        app.buttons["powerup-extraBalls"].tap()
+        let extraBallsStatus = app.staticTexts["powerup-status-extraBalls"]
+        XCTAssertTrue(extraBallsStatus.waitForExistence(timeout: 3))
+        XCTAssertEqual(extraBallsStatus.label, "Armed: +3 balls next shot")
+        XCTAssertTrue(app.staticTexts["performance-overlay"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    func testGuidePowerupExplainsItsAimingPreview() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["menu-level-select"].tap()
+        app.buttons["level-prototype-001"].tap()
+        app.buttons["loadout-precisionGuide"].tap()
+        app.buttons["start-attempt"].tap()
+
+        let guideButton = app.buttons["powerup-precisionGuide"]
+        XCTAssertTrue(guideButton.waitForExistence(timeout: 3))
+        guideButton.tap()
+        let guideStatus = app.staticTexts["powerup-status-precisionGuide"]
+        XCTAssertTrue(guideStatus.waitForExistence(timeout: 3))
+        XCTAssertEqual(guideStatus.label, "Armed: drag to preview bounce")
     }
 
     @MainActor
