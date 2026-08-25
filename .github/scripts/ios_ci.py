@@ -67,23 +67,31 @@ def build_for_testing(simulator_id: str) -> None:
     run("xcodebuild", "build-for-testing", *xcode_arguments(simulator_id))
 
 
-def run_unit_tests(simulator_id: str) -> None:
+def run_tests(simulator_id: str, test_target: str, result_bundle_name: str) -> None:
     runner_temp = Path(os.environ.get("RUNNER_TEMP", "/tmp"))
     run(
         "xcodebuild",
         "test-without-building",
         *xcode_arguments(simulator_id),
-        "-only-testing:BrickPuzzleTests",
+        f"-only-testing:{test_target}",
         "-resultBundlePath",
-        str(runner_temp / "BrickPuzzleTests.xcresult"),
+        str(runner_temp / result_bundle_name),
     )
+
+
+def run_unit_tests(simulator_id: str) -> None:
+    run_tests(simulator_id, "BrickPuzzleTests", "BrickPuzzleTests.xcresult")
+
+
+def run_ui_tests(simulator_id: str) -> None:
+    run_tests(simulator_id, "BrickPuzzleUITests", "BrickPuzzleUITests.xcresult")
 
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("select-simulator")
-    for command in ("build-for-testing", "run-unit-tests"):
+    for command in ("build-for-testing", "run-unit-tests", "run-ui-tests"):
         command_parser = subparsers.add_parser(command)
         command_parser.add_argument("--simulator-id", required=True)
     return parser.parse_args()
@@ -97,6 +105,8 @@ def main() -> None:
         build_for_testing(arguments.simulator_id)
     elif arguments.command == "run-unit-tests":
         run_unit_tests(arguments.simulator_id)
+    elif arguments.command == "run-ui-tests":
+        run_ui_tests(arguments.simulator_id)
     else:
         raise AssertionError(f"Unhandled command: {arguments.command}")
 
