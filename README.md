@@ -38,10 +38,21 @@ Name bundled levels and their clean validation replays with matching, zero-padde
 
 The catalog and replay tests require deterministic fixture ordering, unique level ids, a replay for each bundled level, and a clean three-star replay for levels whose rules require no powerups.
 
+Run the data-level validation before opening a content PR:
+
+```sh
+python3 .github/scripts/level_catalog.py validate
+```
+
+See the [Level Authoring Guide](ProjectManagement/product-management/level-authoring-guide.md) for the complete workflow and the [Level Content Roadmap](ProjectManagement/product-management/level-content-roadmap.md) for the planned expansion through level 75.
+
 ## Project Management Documents
 
 - [Product Plan](ProjectManagement/product-management/product-plan.md)
 - [Research Sources](ProjectManagement/product-management/research-sources.md)
+- [Level Authoring Guide](ProjectManagement/product-management/level-authoring-guide.md)
+- [Level Content Roadmap](ProjectManagement/product-management/level-content-roadmap.md)
+- [Level Catalog Report](ProjectManagement/quality/level-catalog-report.md)
 - [Prototype Performance Sanity Check](ProjectManagement/quality/performance-sanity-check.md)
 - [First Playtest Checklist](ProjectManagement/quality/first-playtest-checklist.md)
 

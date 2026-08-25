@@ -30,6 +30,11 @@ jobs:
       - name: Test CI orchestration
         run: python3 -m unittest discover -s .github/scripts/tests -p 'test_*.py'
 
+      - name: Validate level catalog
+        run: |
+          python3 .github/scripts/level_catalog.py validate
+          python3 .github/scripts/level_catalog.py report --format markdown --check ProjectManagement/quality/level-catalog-report.md
+
       - name: Select an iPhone simulator
         id: simulator
         run: python3 .github/scripts/ios_ci.py select-simulator
