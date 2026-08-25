@@ -97,10 +97,12 @@ xcodebuild -project BrickPuzzle.xcodeproj -scheme BrickPuzzle -destination 'gene
 
 Use Apple-native testing for the prototype:
 
-- Swift Testing for new pure Swift/domain tests, including level schemas, scoring, loadout validation, deterministic game simulation, and replay fixtures.
+- Swift Testing for pure Swift/domain tests, including level schemas, scoring, loadout validation, deterministic game simulation, and replay fixtures.
 - XCTest/XCUIAutomation for UI launch/navigation tests and SpriteKit integration or performance checks.
 
-The current scaffold still includes XCTest-based unit tests. Issue [#3](https://github.com/zarthur/brick-puzzle/issues/3) migrates pure Swift unit tests to Swift Testing while keeping UI tests in XCTest.
+Pure Swift tests have been migrated to Swift Testing. UI automation remains in XCTest.
+
+If `xcodebuild` reports that the active developer directory is the Command Line Tools installation, prefix the commands below with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
 
 Run all tests:
 
