@@ -44,6 +44,7 @@ The catalog and replay tests require deterministic fixture ordering, unique leve
 - [Research Sources](ProjectManagement/product-management/research-sources.md)
 - [Prototype Performance Sanity Check](ProjectManagement/quality/performance-sanity-check.md)
 - [First Playtest Checklist](ProjectManagement/quality/first-playtest-checklist.md)
+- [Prototype Readiness Report](ProjectManagement/quality/prototype-readiness-report.md)
 
 ## Product Pillars
 
