@@ -1,0 +1,33 @@
+{
+  "id": "prototype-012",
+  "title": "Shield Step",
+  "columns": 7,
+  "rows": 10,
+  "bricks": [
+    { "id": "shield-center", "row": 3, "column": 3, "kind": "shield", "hitPoints": 10 },
+    { "id": "mission-center", "row": 1, "column": 3, "kind": "mission", "hitPoints": 10 },
+    { "id": "post-left", "row": 2, "column": 1, "kind": "standard", "hitPoints": 20 },
+    { "id": "post-right", "row": 2, "column": 5, "kind": "standard", "hitPoints": 20 }
+  ],
+  "availablePowerups": ["shieldBreaker", "precisionGuide", "extraBalls"],
+  "maxPowerupLoadoutSize": 1,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["shield-center", "mission-center"]
+  },
+  "shieldLinks": [
+    { "shieldID": "shield-center", "protectedBrickIDs": ["mission-center"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 3,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 2
+  },
+  "metadata": {
+    "intendedSolution": "Remove the centered shield, then repeat the same clean lane to finish its mission brick.",
+    "minimumKnownShotCount": 2,
+    "requiredMechanics": ["aiming", "missionObjective", "shields"],
+    "difficulty": "easy",
+    "validationStatus": "replayValidated"
+  }
+}

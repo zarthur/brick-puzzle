@@ -1,0 +1,39 @@
+{
+  "id": "prototype-024",
+  "title": "Four-Way Route",
+  "columns": 9,
+  "rows": 12,
+  "bricks": [
+    { "id": "splitter-left", "row": 6, "column": 2, "kind": "splitter", "hitPoints": 10 },
+    { "id": "key-right", "row": 6, "column": 6, "kind": "key", "hitPoints": 10 },
+    { "id": "shield-center", "row": 4, "column": 4, "kind": "shield", "hitPoints": 10 },
+    { "id": "bomb-center", "row": 3, "column": 4, "kind": "bomb", "hitPoints": 10 },
+    { "id": "mission-center", "row": 1, "column": 4, "kind": "mission", "hitPoints": 10 },
+    { "id": "wall-left", "row": 5, "column": 3, "kind": "standard", "hitPoints": 30 },
+    { "id": "wall-right", "row": 5, "column": 5, "kind": "standard", "hitPoints": 30 }
+  ],
+  "availablePowerups": ["extraBalls", "shieldBreaker", "bomb", "rowClear", "precisionGuide"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["splitter-left", "key-right", "shield-center", "bomb-center", "mission-center"]
+  },
+  "shieldLinks": [
+    { "shieldID": "shield-center", "protectedBrickIDs": ["bomb-center", "mission-center"] }
+  ],
+  "keyLinks": [
+    { "keyID": "key-right", "lockedBrickIDs": ["shield-center"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 6,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 5
+  },
+  "metadata": {
+    "intendedSolution": "Open the left split, cross to the right key, work back through shield and bomb, then take the exposed center mission shot.",
+    "minimumKnownShotCount": 5,
+    "requiredMechanics": ["aiming", "missionObjective", "keyOrdering", "shields", "bombs", "splitters"],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  }
+}

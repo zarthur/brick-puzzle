@@ -1,0 +1,35 @@
+{
+  "id": "prototype-021",
+  "title": "Double Lock",
+  "columns": 9,
+  "rows": 12,
+  "bricks": [
+    { "id": "key-left", "row": 6, "column": 1, "kind": "key", "hitPoints": 10 },
+    { "id": "key-right", "row": 6, "column": 7, "kind": "key", "hitPoints": 10 },
+    { "id": "mission-center", "row": 1, "column": 4, "kind": "mission", "hitPoints": 10 },
+    { "id": "gate-left", "row": 4, "column": 3, "kind": "standard", "hitPoints": 30 },
+    { "id": "gate-right", "row": 4, "column": 5, "kind": "standard", "hitPoints": 30 }
+  ],
+  "availablePowerups": ["precisionGuide", "extraBalls", "rowClear", "bomb"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["key-left", "key-right", "mission-center"]
+  },
+  "keyLinks": [
+    { "keyID": "key-left", "lockedBrickIDs": ["mission-center"] },
+    { "keyID": "key-right", "lockedBrickIDs": ["mission-center"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 4,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 3
+  },
+  "metadata": {
+    "intendedSolution": "Collect the left and right keys with mirrored banks before taking the newly opened center shot.",
+    "minimumKnownShotCount": 3,
+    "requiredMechanics": ["aiming", "missionObjective", "keyOrdering"],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  }
+}

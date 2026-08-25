@@ -1,0 +1,31 @@
+{
+  "id": "prototype-016",
+  "title": "Blast Fork",
+  "columns": 7,
+  "rows": 11,
+  "bricks": [
+    { "id": "splitter-center", "row": 5, "column": 3, "kind": "splitter", "hitPoints": 10 },
+    { "id": "bomb-left", "row": 3, "column": 2, "kind": "bomb", "hitPoints": 10 },
+    { "id": "mission-left", "row": 2, "column": 1, "kind": "mission", "hitPoints": 10 },
+    { "id": "mission-right", "row": 2, "column": 5, "kind": "mission", "hitPoints": 10 },
+    { "id": "guide-right", "row": 4, "column": 4, "kind": "standard", "hitPoints": 20 }
+  ],
+  "availablePowerups": ["bomb", "extraBalls", "precisionGuide", "rowClear"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["splitter-center", "bomb-left", "mission-left", "mission-right"]
+  },
+  "starRules": {
+    "twoStarShotLimit": 4,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 3
+  },
+  "metadata": {
+    "intendedSolution": "Open the fork, send its left branch through the bomb and nearby mission target, then use the right branch for cleanup.",
+    "minimumKnownShotCount": 3,
+    "requiredMechanics": ["aiming", "missionObjective", "bombs", "splitters"],
+    "difficulty": "easy",
+    "validationStatus": "replayValidated"
+  }
+}
