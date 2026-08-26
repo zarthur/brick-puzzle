@@ -40,9 +40,10 @@ struct BrickPuzzleSceneTests {
 
         let definition = try #require(level.bricks.first)
         let originalNode = try #require(scene.renderedBrickNodeForTesting(id: definition.id))
+        let originalPosition = originalNode.position
         let updatedBrick = BrickState(
             id: definition.id,
-            coordinate: BoardCoordinate(row: definition.row, column: definition.column),
+            coordinate: BoardCoordinate(row: definition.row + 1, column: definition.column),
             kind: definition.kind,
             hitPoints: max(1, definition.hitPoints - 1),
             isDestroyed: false,
@@ -54,6 +55,7 @@ struct BrickPuzzleSceneTests {
 
         let updatedNode = try #require(scene.renderedBrickNodeForTesting(id: definition.id))
         #expect(originalNode === updatedNode)
+        #expect(updatedNode.position != originalPosition)
         let label = try #require(updatedNode.childNode(withName: "brick-label") as? SKLabelNode)
         #expect(label.text?.hasSuffix(" \(updatedBrick.hitPoints)") == true)
 

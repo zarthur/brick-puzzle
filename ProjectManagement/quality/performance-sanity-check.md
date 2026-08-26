@@ -53,6 +53,21 @@ The ceiling is a regression tripwire rather than a microbenchmark baseline. When
 - High-ball-count visual result: pending manual Game Performance observation
 - Combined-mechanic visual result: pending manual Game Performance observation
 
+## Follow-up Validation Record
+
+- Date: 2026-08-26
+- App revision: `8e0c3f3` (SpriteKit playback preparation optimization)
+- Host: Apple M1 Pro, macOS 26.5.2
+- Xcode: 26.5 (`17F113`)
+- Simulator: iPhone 17 Pro, iOS 26.5
+- Combined-mechanic sample: level 10, three debug runs with the performance overlay enabled
+  - Run 1: minimum 58 FPS, longest frame 36 ms, 0 hitches
+  - Run 2: minimum 58 FPS, longest frame 34 ms, 0 hitches
+  - Run 3: minimum 58 FPS, longest frame 33 ms, 0 hitches
+- Peak host CPU: 16.4%; resident memory: approximately 299 MB
+
+The level-10 combined-mechanic sample meets the simulator threshold. The level-1 normal-load and level-6 Extra Balls/splitter samples still need three recorded runs each before this check can be closed.
+
 ## Known Limitations
 
 - Simulator FPS reflects both the app and host workload and is not evidence for every supported physical iPhone.
