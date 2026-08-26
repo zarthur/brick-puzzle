@@ -55,6 +55,7 @@ See the [Level Authoring Guide](ProjectManagement/product-management/level-autho
 - [Level Catalog Report](ProjectManagement/quality/level-catalog-report.md)
 - [Prototype Performance Sanity Check](ProjectManagement/quality/performance-sanity-check.md)
 - [First Playtest Checklist](ProjectManagement/quality/first-playtest-checklist.md)
+- [Prototype Readiness Report](ProjectManagement/quality/prototype-readiness-report.md)
 
 ## Product Pillars
 
