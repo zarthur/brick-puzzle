@@ -25,6 +25,7 @@
 		400000000000000000000002 /* ReplayRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400000000000000000000102 /* ReplayRunnerTests.swift */; };
 		400000000000000000000003 /* Replays in Resources */ = {isa = PBXBuildFile; fileRef = 400000000000000000000103 /* Replays */; };
 		500000000000000000000001 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500000000000000000000101 /* AppState.swift */; };
+		600000000000000000000001 /* BrickPuzzleSceneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600000000000000000000101 /* BrickPuzzleSceneTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +71,7 @@
 		400000000000000000000102 /* ReplayRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayRunnerTests.swift; sourceTree = "<group>"; };
 		400000000000000000000103 /* Replays */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Replays; sourceTree = "<group>"; };
 		500000000000000000000101 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		600000000000000000000101 /* BrickPuzzleSceneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrickPuzzleSceneTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +171,7 @@
 				100000000000000000001102 /* GameStateTests.swift */,
 				300000000000000000000102 /* LevelBundleLoaderTests.swift */,
 				400000000000000000000102 /* ReplayRunnerTests.swift */,
+				600000000000000000000101 /* BrickPuzzleSceneTests.swift */,
 			);
 			path = BrickPuzzleTests;
 			sourceTree = "<group>";
@@ -385,6 +388,7 @@
 				200000000000000000000002 /* GameStateTests.swift in Sources */,
 				300000000000000000000002 /* LevelBundleLoaderTests.swift in Sources */,
 				400000000000000000000002 /* ReplayRunnerTests.swift in Sources */,
+				600000000000000000000001 /* BrickPuzzleSceneTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

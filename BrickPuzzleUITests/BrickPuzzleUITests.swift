@@ -49,6 +49,48 @@ final class BrickPuzzleUITests: XCTestCase {
     }
 
     @MainActor
+    func testExtraBallsShotResolvesAfterBackgroundPreparation() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["menu-level-select"].tap()
+        app.buttons["level-prototype-001"].tap()
+        app.buttons["loadout-extraBalls"].tap()
+        app.buttons["start-attempt"].tap()
+
+        let extraBallsButton = app.buttons["powerup-extraBalls"]
+        XCTAssertTrue(extraBallsButton.waitForExistence(timeout: 3))
+        extraBallsButton.tap()
+        let extraBallsStatus = app.staticTexts["powerup-status-extraBalls"]
+        XCTAssertTrue(extraBallsStatus.waitForExistence(timeout: 3))
+        XCTAssertEqual(extraBallsStatus.label, "Armed: +3 balls next shot")
+
+        let gameBoard = app.otherElements["game-board"]
+        gameBoard.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.45)).tap()
+        Thread.sleep(forTimeInterval: 0.3)
+        let launchAttachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        launchAttachment.name = "Extra Balls launch"
+        launchAttachment.lifetime = .keepAlways
+        add(launchAttachment)
+
+        let shotCount = app.staticTexts["hud-shot-count"]
+        let levelComplete = app.staticTexts["Level Complete"]
+        let deadline = Date().addingTimeInterval(25)
+        var shotResolved = false
+        while Date() < deadline, !levelComplete.exists {
+            if shotCount.exists, shotCount.label == "Shots 1" {
+                shotResolved = true
+                break
+            }
+            Thread.sleep(forTimeInterval: 0.25)
+        }
+        XCTAssertTrue(
+            shotResolved || levelComplete.exists,
+            "The asynchronously prepared Extra Balls volley did not resolve."
+        )
+    }
+
+    @MainActor
     func testSettingsAreReachable() throws {
         let app = XCUIApplication()
         app.launch()
