@@ -3,7 +3,7 @@
   "selectedPowerups": [],
   "shots": [
     { "aimAngleDegrees": 90, "usedPowerups": [], "destroyedBrickIDs": ["key-gate"] },
-    { "aimAngleDegrees": 90, "usedPowerups": [], "destroyedBrickIDs": ["mission-gate"] }
+    { "aimAngleDegrees": 49, "usedPowerups": [], "destroyedBrickIDs": ["mission-gate"] }
   ],
   "expectedOutcome": { "completed": true, "stars": 3 }
 }

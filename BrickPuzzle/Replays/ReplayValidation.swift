@@ -96,11 +96,32 @@ struct ReplayRunner {
                     )
                 }
 
-                state.applyPlaceholderShot(
-                    destroyedBrickIDs: shot.destroyedBrickIDs,
-                    aimAngleDegrees: shot.aimAngleDegrees,
-                    usedPowerups: shot.usedPowerups
-                )
+                do {
+                    for powerup in shot.usedPowerups {
+                        try state.activatePowerup(powerup)
+                    }
+                    try state.beginAiming()
+                    try state.updateAim(angleDegrees: shot.aimAngleDegrees)
+                    let resolution = try state.fire()
+                    let actualDestroyedBrickIDs = resolution.finalSnapshot.shotHistory.last?
+                        .destroyedBrickIDs.sorted() ?? []
+                    let expectedDestroyedBrickIDs = shot.destroyedBrickIDs.sorted()
+                    guard actualDestroyedBrickIDs == expectedDestroyedBrickIDs else {
+                        return failureResult(
+                            replay: replay,
+                            shotIndex: index,
+                            actualOutcome: outcome(for: state),
+                            reason: "Expected destroyed brick ids \(expectedDestroyedBrickIDs); actual \(actualDestroyedBrickIDs)."
+                        )
+                    }
+                } catch {
+                    return failureResult(
+                        replay: replay,
+                        shotIndex: index,
+                        actualOutcome: outcome(for: state),
+                        reason: "Runtime shot failed: \(error)."
+                    )
+                }
             }
 
             let actualOutcome = outcome(for: state)
