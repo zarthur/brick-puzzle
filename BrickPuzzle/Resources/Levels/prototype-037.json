@@ -1,0 +1,88 @@
+{
+  "id": "prototype-037",
+  "title": "Soft Detonation",
+  "columns": 8,
+  "rows": 12,
+  "bricks": [
+    {
+      "id": "shield-left",
+      "row": 5,
+      "column": 2,
+      "kind": "shield",
+      "hitPoints": 10
+    },
+    {
+      "id": "bomb-center",
+      "row": 3,
+      "column": 4,
+      "kind": "bomb",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-left",
+      "row": 1,
+      "column": 2,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-right",
+      "row": 1,
+      "column": 6,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "armor-post",
+      "row": 4,
+      "column": 5,
+      "kind": "standard",
+      "hitPoints": 30
+    }
+  ],
+  "availablePowerups": [
+    "extraBalls",
+    "shieldBreaker",
+    "bomb",
+    "rowClear",
+    "precisionGuide"
+  ],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": [
+      "shield-left",
+      "bomb-center",
+      "mission-left",
+      "mission-right"
+    ]
+  },
+  "shieldLinks": [
+    {
+      "shieldID": "shield-left",
+      "protectedBrickIDs": [
+        "bomb-center",
+        "mission-left",
+        "mission-right"
+      ]
+    }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 5,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 4
+  },
+  "metadata": {
+    "intendedSolution": "Remove the shield, trigger the exposed bomb, then clear the mission targets from opposite banks.",
+    "minimumKnownShotCount": 4,
+    "requiredMechanics": [
+      "aiming",
+      "missionObjective",
+      "shields",
+      "bombs"
+    ],
+    "difficulty": "easy",
+    "validationStatus": "replayValidated"
+  },
+  "keyLinks": []
+}

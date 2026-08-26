@@ -10,7 +10,7 @@ struct ReplayRunnerTests {
         let replays = try ReplayBundleLoader().loadAllReplays()
         let replayLevelIDs = Set(replays.map(\.levelID))
 
-        let expectedIDs = (1...25).map { String(format: "prototype-%03d", $0) }
+        let expectedIDs = (1...levels.count).map { String(format: "prototype-%03d", $0) }
 
         #expect(levels.map(\.id) == expectedIDs)
         #expect(replayLevelIDs == Set(levels.map(\.id)))
@@ -20,6 +20,22 @@ struct ReplayRunnerTests {
             #expect(result.passed, Comment(rawValue: result.failureMessage ?? replay.levelID))
             #expect(result.actualOutcome == ReplayActualOutcome(completed: true, stars: 3))
         }
+    }
+
+    @Test("Combination-batch replays are clean three-star solutions")
+    func combinationBatchReplaysAreClean() throws {
+        let replays = try ReplayBundleLoader().loadAllReplays().filter {
+            ("prototype-026"..."prototype-050").contains($0.levelID)
+        }
+
+        #expect(replays.count == 25)
+        #expect(replays.allSatisfy { $0.selectedPowerups.isEmpty })
+        #expect(replays.allSatisfy { replay in
+            replay.shots.allSatisfy { $0.usedPowerups.isEmpty }
+        })
+        #expect(replays.allSatisfy {
+            $0.expectedOutcome == ReplayExpectedOutcome(completed: true, stars: 3)
+        })
     }
 
     @Test("Powerup-assisted late-level clears cannot earn three stars")

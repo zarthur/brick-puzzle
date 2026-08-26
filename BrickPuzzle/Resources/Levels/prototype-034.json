@@ -1,0 +1,98 @@
+{
+  "id": "prototype-034",
+  "title": "Shattered Fork",
+  "columns": 7,
+  "rows": 11,
+  "bricks": [
+    {
+      "id": "splitter-center",
+      "row": 4,
+      "column": 3,
+      "kind": "splitter",
+      "hitPoints": 10
+    },
+    {
+      "id": "bomb-left",
+      "row": 2,
+      "column": 2,
+      "kind": "bomb",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-left",
+      "row": 1,
+      "column": 1,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-right",
+      "row": 1,
+      "column": 5,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "guide-right",
+      "row": 3,
+      "column": 4,
+      "kind": "standard",
+      "hitPoints": 20
+    },
+    {
+      "id": "shield-route",
+      "row": 5,
+      "column": 1,
+      "kind": "shield",
+      "hitPoints": 10
+    }
+  ],
+  "availablePowerups": [
+    "extraBalls",
+    "shieldBreaker",
+    "bomb",
+    "rowClear",
+    "precisionGuide"
+  ],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": [
+      "shield-route",
+      "splitter-center",
+      "bomb-left",
+      "mission-left",
+      "mission-right"
+    ]
+  },
+  "starRules": {
+    "twoStarShotLimit": 6,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 5
+  },
+  "metadata": {
+    "intendedSolution": "Open the split, cross the center gate, remove the shield, trigger the exposed bomb, and finish the mission.",
+    "minimumKnownShotCount": 5,
+    "requiredMechanics": [
+      "aiming",
+      "missionObjective",
+      "shields",
+      "bombs",
+      "splitters"
+    ],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  },
+  "shieldLinks": [
+    {
+      "shieldID": "shield-route",
+      "protectedBrickIDs": [
+        "splitter-center",
+        "bomb-left",
+        "mission-left",
+        "mission-right"
+      ]
+    }
+  ],
+  "keyLinks": []
+}

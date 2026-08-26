@@ -1,0 +1,52 @@
+{
+  "shots": [
+    {
+      "usedPowerups": [],
+      "aimAngleDegrees": 75,
+      "destroyedBrickIDs": [
+        "key-route"
+      ]
+    },
+    {
+      "usedPowerups": [],
+      "aimAngleDegrees": 143,
+      "destroyedBrickIDs": [
+        "splitter-center"
+      ]
+    },
+    {
+      "usedPowerups": [],
+      "aimAngleDegrees": 93,
+      "destroyedBrickIDs": [
+        "shield-left"
+      ]
+    },
+    {
+      "usedPowerups": [],
+      "aimAngleDegrees": 90,
+      "destroyedBrickIDs": [
+        "shield-right"
+      ]
+    },
+    {
+      "usedPowerups": [],
+      "aimAngleDegrees": 87,
+      "destroyedBrickIDs": [
+        "mission-left"
+      ]
+    },
+    {
+      "usedPowerups": [],
+      "aimAngleDegrees": 89,
+      "destroyedBrickIDs": [
+        "mission-right"
+      ]
+    }
+  ],
+  "levelID": "prototype-035",
+  "selectedPowerups": [],
+  "expectedOutcome": {
+    "completed": true,
+    "stars": 3
+  }
+}

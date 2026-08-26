@@ -1,0 +1,95 @@
+{
+  "id": "prototype-030",
+  "title": "Keyed Fork",
+  "columns": 7,
+  "rows": 10,
+  "bricks": [
+    {
+      "id": "splitter-center",
+      "row": 3,
+      "column": 3,
+      "kind": "splitter",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-left",
+      "row": 0,
+      "column": 1,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-right",
+      "row": 0,
+      "column": 5,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "rail-left",
+      "row": 2,
+      "column": 2,
+      "kind": "standard",
+      "hitPoints": 20
+    },
+    {
+      "id": "rail-right",
+      "row": 2,
+      "column": 4,
+      "kind": "standard",
+      "hitPoints": 20
+    },
+    {
+      "id": "key-route",
+      "row": 4,
+      "column": 5,
+      "kind": "key",
+      "hitPoints": 10
+    }
+  ],
+  "availablePowerups": [
+    "extraBalls",
+    "shieldBreaker",
+    "bomb",
+    "rowClear",
+    "precisionGuide"
+  ],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": [
+      "key-route",
+      "splitter-center",
+      "mission-left",
+      "mission-right"
+    ]
+  },
+  "starRules": {
+    "twoStarShotLimit": 5,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 4
+  },
+  "metadata": {
+    "intendedSolution": "Open the first split, collect the key, cross the unlocked route, activate the second split, and finish the mission.",
+    "minimumKnownShotCount": 4,
+    "requiredMechanics": [
+      "aiming",
+      "missionObjective",
+      "keyOrdering",
+      "splitters"
+    ],
+    "difficulty": "easy",
+    "validationStatus": "replayValidated"
+  },
+  "keyLinks": [
+    {
+      "keyID": "key-route",
+      "lockedBrickIDs": [
+        "splitter-center",
+        "mission-left",
+        "mission-right"
+      ]
+    }
+  ],
+  "shieldLinks": []
+}

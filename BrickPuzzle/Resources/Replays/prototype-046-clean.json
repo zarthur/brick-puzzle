@@ -1,0 +1,32 @@
+{
+  "levelID": "prototype-046",
+  "selectedPowerups": [],
+  "shots": [
+    {
+      "aimAngleDegrees": 73,
+      "usedPowerups": [],
+      "destroyedBrickIDs": [
+        "splitter-center"
+      ]
+    },
+    {
+      "aimAngleDegrees": 113,
+      "usedPowerups": [],
+      "destroyedBrickIDs": [
+        "bomb-left",
+        "mission-left"
+      ]
+    },
+    {
+      "aimAngleDegrees": 54,
+      "usedPowerups": [],
+      "destroyedBrickIDs": [
+        "mission-right"
+      ]
+    }
+  ],
+  "expectedOutcome": {
+    "completed": true,
+    "stars": 3
+  }
+}

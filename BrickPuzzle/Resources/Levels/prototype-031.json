@@ -1,0 +1,107 @@
+{
+  "id": "prototype-031",
+  "title": "Split Bulwark",
+  "columns": 9,
+  "rows": 12,
+  "bricks": [
+    {
+      "id": "splitter-center",
+      "row": 6,
+      "column": 4,
+      "kind": "splitter",
+      "hitPoints": 10
+    },
+    {
+      "id": "shield-left",
+      "row": 3,
+      "column": 2,
+      "kind": "shield",
+      "hitPoints": 10
+    },
+    {
+      "id": "shield-right",
+      "row": 3,
+      "column": 6,
+      "kind": "shield",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-left",
+      "row": 1,
+      "column": 2,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-right",
+      "row": 1,
+      "column": 6,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "rail-left",
+      "row": 5,
+      "column": 3,
+      "kind": "standard",
+      "hitPoints": 30
+    },
+    {
+      "id": "rail-right",
+      "row": 5,
+      "column": 5,
+      "kind": "standard",
+      "hitPoints": 30
+    }
+  ],
+  "availablePowerups": [
+    "extraBalls",
+    "shieldBreaker",
+    "bomb",
+    "rowClear",
+    "precisionGuide"
+  ],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": [
+      "splitter-center",
+      "shield-left",
+      "shield-right",
+      "mission-left",
+      "mission-right"
+    ]
+  },
+  "shieldLinks": [
+    {
+      "shieldID": "shield-left",
+      "protectedBrickIDs": [
+        "mission-left"
+      ]
+    },
+    {
+      "shieldID": "shield-right",
+      "protectedBrickIDs": [
+        "mission-right"
+      ]
+    }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 6,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 5
+  },
+  "metadata": {
+    "intendedSolution": "Open the splitter, alternate through the shielded lanes, then repeat those banks into the mission targets.",
+    "minimumKnownShotCount": 5,
+    "requiredMechanics": [
+      "aiming",
+      "missionObjective",
+      "shields",
+      "splitters"
+    ],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  },
+  "keyLinks": []
+}

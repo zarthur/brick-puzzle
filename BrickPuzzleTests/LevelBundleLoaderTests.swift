@@ -13,9 +13,66 @@ struct LevelBundleLoaderTests {
 
     @Test("Bundled catalog is deterministically ordered")
     func bundledCatalogOrder() throws {
-        let expectedIDs = (1...25).map { String(format: "prototype-%03d", $0) }
+        let expectedIDs = (1...50).map { String(format: "prototype-%03d", $0) }
 
         #expect(try LevelBundleLoader().loadAllLevels().map(\.id) == expectedIDs)
+    }
+
+    @Test("Combination batch follows its fixed difficulty and mechanic plan")
+    func combinationBatchContract() throws {
+        let allLevels = try LevelBundleLoader().loadAllLevels()
+        let levels = allLevels.filter {
+            ("prototype-026"..."prototype-050").contains($0.id)
+        }
+        let easyIDs: Set<String> = ["prototype-030", "prototype-037"]
+        let hardIDs: Set<String> = [
+            "prototype-028", "prototype-032", "prototype-035", "prototype-039",
+            "prototype-042", "prototype-045", "prototype-048", "prototype-050"
+        ]
+        let specialtyMechanics: Set<LevelMechanic> = [
+            .keyOrdering, .shields, .bombs, .splitters
+        ]
+
+        #expect(levels.count == 25)
+        #expect(Set(allLevels.map(\.title)).count == allLevels.count)
+        #expect(levels.allSatisfy { level in
+            let expectedDifficulty: LevelDifficulty = if easyIDs.contains(level.id) {
+                .easy
+            } else if hardIDs.contains(level.id) {
+                .hard
+            } else {
+                .medium
+            }
+            return level.metadata.difficulty == expectedDifficulty
+        })
+        #expect(levels.allSatisfy { $0.metadata.validationStatus == .replayValidated })
+        #expect(levels.allSatisfy {
+            $0.metadata.minimumKnownShotCount == $0.starRules.threeStarShotLimit
+                && $0.starRules.twoStarShotLimit == $0.starRules.threeStarShotLimit + 1
+                && $0.starRules.threeStarRequiresNoPowerups
+        })
+        #expect(levels.allSatisfy { level in
+            let represented = Set(level.metadata.requiredMechanics).intersection(specialtyMechanics)
+            return (2...3).contains(represented.count)
+        })
+        #expect(levels.allSatisfy { level in
+            !level.metadata.requiredMechanics.contains(.keyOrdering) || !level.keyLinks.isEmpty
+        })
+        #expect(levels.allSatisfy { level in
+            !level.metadata.requiredMechanics.contains(.shields) || !level.shieldLinks.isEmpty
+        })
+        #expect(levels.allSatisfy { level in
+            !level.metadata.requiredMechanics.contains(.bombs)
+                || level.bricks.contains { $0.kind == .bomb }
+        })
+        #expect(levels.allSatisfy { level in
+            !level.metadata.requiredMechanics.contains(.splitters)
+                || level.bricks.contains { $0.kind == .splitter }
+        })
+
+        for mechanic in specialtyMechanics {
+            #expect(levels.filter { $0.metadata.requiredMechanics.contains(mechanic) }.count >= 10)
+        }
     }
 
     @Test("First expansion batch follows its difficulty and mechanic plan")

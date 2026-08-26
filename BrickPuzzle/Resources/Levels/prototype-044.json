@@ -1,0 +1,127 @@
+{
+  "id": "prototype-044",
+  "title": "Split Lockstep",
+  "columns": 9,
+  "rows": 12,
+  "bricks": [
+    {
+      "id": "splitter-center",
+      "row": 5,
+      "column": 4,
+      "kind": "splitter",
+      "hitPoints": 10
+    },
+    {
+      "id": "shield-left",
+      "row": 2,
+      "column": 2,
+      "kind": "shield",
+      "hitPoints": 10
+    },
+    {
+      "id": "shield-right",
+      "row": 2,
+      "column": 6,
+      "kind": "shield",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-left",
+      "row": 0,
+      "column": 2,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-right",
+      "row": 0,
+      "column": 6,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "rail-left",
+      "row": 4,
+      "column": 3,
+      "kind": "standard",
+      "hitPoints": 30
+    },
+    {
+      "id": "rail-right",
+      "row": 4,
+      "column": 5,
+      "kind": "standard",
+      "hitPoints": 30
+    },
+    {
+      "id": "key-route",
+      "row": 6,
+      "column": 6,
+      "kind": "key",
+      "hitPoints": 10
+    }
+  ],
+  "availablePowerups": [
+    "extraBalls",
+    "shieldBreaker",
+    "bomb",
+    "rowClear",
+    "precisionGuide"
+  ],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": [
+      "key-route",
+      "splitter-center",
+      "shield-left",
+      "shield-right",
+      "mission-left",
+      "mission-right"
+    ]
+  },
+  "shieldLinks": [
+    {
+      "shieldID": "shield-left",
+      "protectedBrickIDs": [
+        "mission-left"
+      ]
+    },
+    {
+      "shieldID": "shield-right",
+      "protectedBrickIDs": [
+        "mission-right"
+      ]
+    }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 7,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 6
+  },
+  "metadata": {
+    "intendedSolution": "Open the split route, collect the key, remove the unlocked shield, activate the second split, and finish the mission.",
+    "minimumKnownShotCount": 6,
+    "requiredMechanics": [
+      "aiming",
+      "missionObjective",
+      "keyOrdering",
+      "shields",
+      "splitters"
+    ],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  },
+  "keyLinks": [
+    {
+      "keyID": "key-route",
+      "lockedBrickIDs": [
+        "splitter-center",
+        "shield-left",
+        "shield-right",
+        "mission-left",
+        "mission-right"
+      ]
+    }
+  ]
+}
