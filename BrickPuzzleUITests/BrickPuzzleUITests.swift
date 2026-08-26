@@ -76,13 +76,16 @@ final class BrickPuzzleUITests: XCTestCase {
         let shotCount = app.staticTexts["hud-shot-count"]
         let levelComplete = app.staticTexts["Level Complete"]
         let deadline = Date().addingTimeInterval(25)
-        while Date() < deadline,
-              shotCount.label != "Shots 1",
-              !levelComplete.exists {
+        var shotResolved = false
+        while Date() < deadline, !levelComplete.exists {
+            if shotCount.exists, shotCount.label == "Shots 1" {
+                shotResolved = true
+                break
+            }
             Thread.sleep(forTimeInterval: 0.25)
         }
         XCTAssertTrue(
-            shotCount.label == "Shots 1" || levelComplete.exists,
+            shotResolved || levelComplete.exists,
             "The asynchronously prepared Extra Balls volley did not resolve."
         )
     }
