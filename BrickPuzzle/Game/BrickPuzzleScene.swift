@@ -21,6 +21,85 @@ struct FrameRateSnapshot: Equatable {
     }
 }
 
+struct BallPlaybackSample: Equatable {
+    let elapsedTime: TimeInterval
+    let position: BoardPoint
+}
+
+struct BallPlaybackPath {
+    let samples: [BallPlaybackSample]
+
+    func position(at elapsedTime: TimeInterval) -> BoardPoint? {
+        guard let first = samples.first, elapsedTime >= first.elapsedTime else {
+            return nil
+        }
+        guard let last = samples.last, elapsedTime < last.elapsedTime else {
+            return samples.last?.position
+        }
+
+        var lowerBound = 0
+        var upperBound = samples.count - 1
+        while lowerBound + 1 < upperBound {
+            let midpoint = (lowerBound + upperBound) / 2
+            if samples[midpoint].elapsedTime <= elapsedTime {
+                lowerBound = midpoint
+            } else {
+                upperBound = midpoint
+            }
+        }
+
+        let lower = samples[lowerBound]
+        let upper = samples[upperBound]
+        let interval = upper.elapsedTime - lower.elapsedTime
+        guard interval > 0 else { return upper.position }
+        let progress = (elapsedTime - lower.elapsedTime) / interval
+        return BoardPoint(
+            x: lower.position.x + (upper.position.x - lower.position.x) * progress,
+            y: lower.position.y + (upper.position.y - lower.position.y) * progress
+        )
+    }
+}
+
+struct BallPlaybackTrack {
+    let id: String
+    let path: BallPlaybackPath
+}
+
+struct ShotPlaybackPlan: @unchecked Sendable {
+    let state: GameState
+    let resolution: ShotResolution
+    let ballTracks: [BallPlaybackTrack]
+}
+
+struct ShotPlaybackResolver: @unchecked Sendable {
+    let state: GameState
+
+    func resolve() throws -> ShotPlaybackPlan {
+        var resolvedState = state
+        let resolution = try resolvedState.fire()
+        let ballIDs = Set(resolution.frames.flatMap { $0.balls.map(\.id) }).sorted()
+        let tracks = ballIDs.map { ballID in
+            BallPlaybackTrack(
+                id: ballID,
+                path: BallPlaybackPath(samples: resolution.frames.compactMap { frame in
+                    guard let ball = frame.balls.first(where: { $0.id == ballID }) else {
+                        return nil
+                    }
+                    return BallPlaybackSample(
+                        elapsedTime: frame.elapsedTime,
+                        position: ball.position
+                    )
+                })
+            )
+        }
+        return ShotPlaybackPlan(
+            state: resolvedState,
+            resolution: resolution,
+            ballTracks: tracks
+        )
+    }
+}
+
 struct FrameRateMonitor {
     private let reportingInterval: TimeInterval
     private let hitchThreshold: TimeInterval
@@ -90,7 +169,7 @@ struct FrameRateMonitor {
     }
 }
 
-final class BrickPuzzleScene: SKScene {
+final class BrickPuzzleScene: SKScene, @unchecked Sendable {
     private var gameState: GameState?
     private var activeTouch: UITouch?
     private var isAimCancelled = false
@@ -279,21 +358,30 @@ final class BrickPuzzleScene: SKScene {
     }
 
     private func fireShot() {
-        guard var state = gameState else {
-            return
-        }
+        guard let state = gameState else { return }
 
-        do {
-            let resolution = try state.fire()
-            gameState = state
-            animate(resolution)
-        } catch {
-            gameState = state
-            cancelAim()
+        isAnimatingShot = true
+        let resolver = ShotPlaybackResolver(state: state)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            do {
+                let plan = try resolver.resolve()
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    self.gameState = plan.state
+                    self.animate(plan)
+                }
+            } catch {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    self.isAnimatingShot = false
+                    self.cancelAim()
+                }
+            }
         }
     }
 
-    private func animate(_ resolution: ShotResolution) {
+    private func animate(_ plan: ShotPlaybackPlan) {
+        let resolution = plan.resolution
         if reduceMotion {
             isAnimatingShot = false
             renderSnapshot()
@@ -302,6 +390,7 @@ final class BrickPuzzleScene: SKScene {
         }
         guard let snapshot = gameState?.snapshot,
               !resolution.frames.isEmpty else {
+            isAnimatingShot = false
             renderSnapshot()
             return
         }
@@ -312,7 +401,6 @@ final class BrickPuzzleScene: SKScene {
         childNode(withName: "instruction-label")?.removeFromParent()
 
         let viewport = viewport(for: snapshot.boardSize)
-        let ballIDs = Set(resolution.frames.flatMap { $0.balls.map(\.id) }).sorted()
         if let baseBallCount = gameState?.baseBallCount,
            let ballCount = resolution.frames.map({ $0.balls.count }).max(),
            ballCount > baseBallCount {
@@ -334,39 +422,31 @@ final class BrickPuzzleScene: SKScene {
             previousBricks = bricks
         }
 
+        let duration = resolution.frames.last?.elapsedTime ?? 0
         let ballColors: [UIColor] = [.systemTeal, .systemYellow, .systemPink]
-        for (ballIndex, ballID) in ballIDs.enumerated() {
-            let samples = resolution.frames.compactMap { frame -> (Double, BoardPoint)? in
-                guard let ball = frame.balls.first(where: { $0.id == ballID }) else { return nil }
-                return (frame.elapsedTime, ball.position)
-            }
-            guard let firstSample = samples.first else { continue }
+        for (ballIndex, track) in plan.ballTracks.enumerated() {
+            guard let firstSample = track.path.samples.first else { continue }
 
             let ball = SKShapeNode(circleOfRadius: max(4, viewport.cellSize * 0.12))
-            ball.name = "active-ball-\(ballID)"
-            ball.position = viewport.scenePoint(for: firstSample.1)
+            ball.name = "active-ball-\(track.id)"
+            ball.position = viewport.scenePoint(for: firstSample.position)
             ball.fillColor = ballColors[ballIndex % ballColors.count]
             ball.strokeColor = .white
             ball.lineWidth = 2.5
             ball.zPosition = 20
+            ball.alpha = firstSample.elapsedTime > 0 ? 0 : 1
             addChild(ball)
 
-            var actions: [SKAction] = []
-            if firstSample.0 > 0 {
-                ball.alpha = 0
-                actions.append(.wait(forDuration: firstSample.0))
-                actions.append(.fadeIn(withDuration: 0.01))
-            }
-            var previousTime = firstSample.0
-            for sample in samples.dropFirst() {
-                let duration = max(0.001, sample.0 - previousTime)
-                previousTime = sample.0
-                actions.append(.move(to: viewport.scenePoint(for: sample.1), duration: duration))
-            }
-            ball.run(.sequence(actions))
+            ball.run(.customAction(withDuration: duration) { node, elapsedTime in
+                guard let position = track.path.position(at: elapsedTime) else {
+                    node.alpha = 0
+                    return
+                }
+                node.alpha = 1
+                node.position = viewport.scenePoint(for: position)
+            })
         }
 
-        let duration = resolution.frames.last?.elapsedTime ?? 0
         run(.wait(forDuration: duration)) { [weak self] in
             guard let self else { return }
             self.isAnimatingShot = false
@@ -481,12 +561,14 @@ final class BrickPuzzleScene: SKScene {
         addChild(container)
 
         let node = SKShapeNode(rectOf: brickSize, cornerRadius: min(8, viewport.cellSize * 0.16))
+        node.name = "brick-body"
         node.fillColor = brick.kind.color
         node.strokeColor = brick.isProtected ? .systemCyan : UIColor.white.withAlphaComponent(0.5)
         node.lineWidth = brick.kind == .mission || brick.isProtected ? 3 : 1
         container.addChild(node)
 
         let label = SKLabelNode(text: "\(brick.kind.shortLabel) \(brick.hitPoints)")
+        label.name = "brick-label"
         label.fontName = "AvenirNext-Bold"
         label.fontSize = max(11, viewport.cellSize * 0.24)
         label.fontColor = .white
@@ -496,6 +578,7 @@ final class BrickPuzzleScene: SKScene {
 
         if brick.isLocked || brick.isProtected {
             let stateLabel = SKLabelNode(text: brick.isLocked ? "🔒" : "◇")
+            stateLabel.name = "brick-state"
             stateLabel.fontSize = max(10, viewport.cellSize * 0.22)
             stateLabel.horizontalAlignmentMode = .right
             stateLabel.verticalAlignmentMode = .top
@@ -509,12 +592,78 @@ final class BrickPuzzleScene: SKScene {
     }
 
     private func renderPlaybackBricks(_ bricks: [BrickState], viewport: BoardViewport) {
+        let activeBricks = bricks.filter { !$0.isDestroyed }
+        let activeIDs = Set(activeBricks.map(\.id))
         enumerateChildNodes(withName: "brick-*") { node, _ in
-            node.removeFromParent()
+            guard let name = node.name else { return }
+            let id = String(name.dropFirst("brick-".count))
+            if !activeIDs.contains(id) {
+                node.removeFromParent()
+            }
         }
-        for brick in bricks where !brick.isDestroyed {
-            renderBrick(brick, viewport: viewport)
+        for brick in activeBricks {
+            if !updateRenderedBrick(brick, viewport: viewport) {
+                renderBrick(brick, viewport: viewport)
+            }
         }
+    }
+
+    private func updateRenderedBrick(_ brick: BrickState, viewport: BoardViewport) -> Bool {
+        guard let container = childNode(withName: "brick-\(brick.id)"),
+              let body = container.childNode(withName: "brick-body") as? SKShapeNode,
+              let label = container.childNode(withName: "brick-label") as? SKLabelNode else {
+            return false
+        }
+
+        let geometry = BoardGeometry(size: viewport.boardSize)
+        guard let bounds = geometry.drawnBrickBounds(at: brick.coordinate) else {
+            container.removeFromParent()
+            return true
+        }
+        let brickSize = CGSize(
+            width: viewport.cellSize * CGFloat(bounds.maxX - bounds.minX),
+            height: viewport.cellSize * CGFloat(bounds.maxY - bounds.minY)
+        )
+        container.position = viewport.scenePoint(for: BoardPoint(
+            x: (bounds.minX + bounds.maxX) / 2,
+            y: (bounds.minY + bounds.maxY) / 2
+        ))
+        body.fillColor = brick.kind.color
+        body.strokeColor = brick.isProtected ? .systemCyan : UIColor.white.withAlphaComponent(0.5)
+        body.lineWidth = brick.kind == .mission || brick.isProtected ? 3 : 1
+        label.text = "\(brick.kind.shortLabel) \(brick.hitPoints)"
+
+        if brick.isLocked || brick.isProtected {
+            let stateLabel: SKLabelNode
+            if let existing = container.childNode(withName: "brick-state") as? SKLabelNode {
+                stateLabel = existing
+            } else {
+                stateLabel = SKLabelNode()
+                stateLabel.name = "brick-state"
+                stateLabel.zPosition = 3
+                container.addChild(stateLabel)
+            }
+            stateLabel.text = brick.isLocked ? "🔒" : "◇"
+            stateLabel.fontSize = max(10, viewport.cellSize * 0.22)
+            stateLabel.horizontalAlignmentMode = .right
+            stateLabel.verticalAlignmentMode = .top
+            stateLabel.position = CGPoint(
+                x: brickSize.width * 0.45,
+                y: brickSize.height * 0.45
+            )
+        } else {
+            container.childNode(withName: "brick-state")?.removeFromParent()
+        }
+        return true
+    }
+
+    func renderPlaybackBricksForTesting(_ bricks: [BrickState]) {
+        guard let snapshot = gameState?.snapshot else { return }
+        renderPlaybackBricks(bricks, viewport: viewport(for: snapshot.boardSize))
+    }
+
+    func renderedBrickNodeForTesting(id: String) -> SKNode? {
+        childNode(withName: "brick-\(id)")
     }
 
     private func renderDangerLine(row: Int, viewport: BoardViewport) {
