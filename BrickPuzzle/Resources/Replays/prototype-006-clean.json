@@ -2,9 +2,9 @@
   "levelID": "prototype-006",
   "selectedPowerups": [],
   "shots": [
-    { "aimAngleDegrees": 90, "usedPowerups": [], "destroyedBrickIDs": ["splitter-center"] },
-    { "aimAngleDegrees": 65, "usedPowerups": [], "destroyedBrickIDs": ["mission-left"] },
-    { "aimAngleDegrees": 115, "usedPowerups": [], "destroyedBrickIDs": ["mission-right"] }
+    { "aimAngleDegrees": 128, "usedPowerups": [], "destroyedBrickIDs": ["splitter-center"] },
+    { "aimAngleDegrees": 85, "usedPowerups": [], "destroyedBrickIDs": ["mission-left"] },
+    { "aimAngleDegrees": 110, "usedPowerups": [], "destroyedBrickIDs": ["mission-right"] }
   ],
   "expectedOutcome": { "completed": true, "stars": 3 }
 }

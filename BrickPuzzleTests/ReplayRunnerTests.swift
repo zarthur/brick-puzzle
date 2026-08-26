@@ -70,6 +70,29 @@ struct ReplayRunnerTests {
         #expect(message.contains("actual completed=false, stars=0"))
     }
 
+    @Test("Replay checks claimed destroyed bricks against the live shot")
+    func replayRejectsClaimedDestructionThatPhysicsDoesNotProduce() throws {
+        let replay = ReplayFixture(
+            levelID: "prototype-001",
+            selectedPowerups: [],
+            shots: [
+                ReplayShot(
+                    aimAngleDegrees: 90,
+                    usedPowerups: [],
+                    destroyedBrickIDs: ["mission-center"]
+                )
+            ],
+            expectedOutcome: ReplayExpectedOutcome(completed: true, stars: 3)
+        )
+
+        let result = ReplayRunner().validate(replay)
+        let message = try #require(result.failureMessage)
+
+        #expect(!result.passed)
+        #expect(message.contains("Expected destroyed brick ids [\"mission-center\"]"))
+        #expect(message.contains("actual []"))
+    }
+
     @Test("Replay rejects unselected powerup usage")
     func replayRejectsUnselectedPowerupUsage() throws {
         let replay = ReplayFixture(
@@ -128,7 +151,7 @@ struct ReplayRunnerTests {
             id: "powerup-three-star",
             title: "Powerup Three Star",
             columns: 1,
-            rows: 1,
+            rows: 3,
             bricks: [
                 BrickDefinition(row: 0, column: 0, kind: .mission, hitPoints: 1)
             ],

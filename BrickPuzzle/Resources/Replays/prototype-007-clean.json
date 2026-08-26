@@ -2,9 +2,9 @@
   "levelID": "prototype-007",
   "selectedPowerups": [],
   "shots": [
-    { "aimAngleDegrees": 60, "usedPowerups": [], "destroyedBrickIDs": ["key-vault"] },
-    { "aimAngleDegrees": 90, "usedPowerups": [], "destroyedBrickIDs": ["shield-vault"] },
-    { "aimAngleDegrees": 90, "usedPowerups": [], "destroyedBrickIDs": ["mission-vault"] }
+    { "aimAngleDegrees": 109, "usedPowerups": [], "destroyedBrickIDs": ["key-vault"] },
+    { "aimAngleDegrees": 107, "usedPowerups": [], "destroyedBrickIDs": ["shield-vault"] },
+    { "aimAngleDegrees": 112, "usedPowerups": [], "destroyedBrickIDs": ["mission-vault"] }
   ],
   "expectedOutcome": { "completed": true, "stars": 3 }
 }
