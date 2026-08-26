@@ -6,7 +6,7 @@
 - Candidate revision: `9b8c54a` (`main`, after PR #74)
 - Verdict: **Not ready — manual simulator and physical-device evidence pending**
 
-This report records only observed results. A passing automated baseline does not substitute for the manual frame-rate, device, accessibility, and level-by-level checks required by issues #53, #55, #70, and #71.
+This report records only observed results. A passing automated baseline does not substitute for the remaining manual frame-rate, accessibility, and level-by-level checks required by issues #53 and #55.
 
 ## Automated Baseline
 
@@ -44,10 +44,10 @@ The prior `macos-26` attempt passed compilation and the unit target but hung whi
 | --- | --- | --- |
 | Level 1 normal-load FPS, three runs | Blocked | Unlock the Mac and record overlay, CPU, and memory values. |
 | Level 6 Extra Balls/splitter FPS, three runs | Blocked | Unlock the Mac and record overlay, CPU, and memory values. |
-| Level 10 combined-mechanic FPS, three runs | Blocked | Unlock the Mac and record overlay, CPU, and memory values. |
+| Level 10 combined-mechanic FPS, three runs | Pass | 2026-08-26: 58 FPS minimum in each run; 33–36 ms longest frame; zero hitches. See `performance-sanity-check.md`. |
 | Ten-level first-playtest checklist | Blocked | Unlock the Mac; complete every checklist section without inferring subjective results. |
-| #70 brick descent and danger-line behavior on iPhone | Blocked | Paired iPhone running iOS 26.6 is currently offline. Connect and unlock it, then record the observed result. |
-| #71 Extra Balls and Guide visibility on iPhone | Blocked | Paired iPhone running iOS 26.6 is currently offline. Connect and unlock it, then record the observed result. |
+| #70 brick descent and danger-line behavior on iPhone | Pass | 2026-08-26: selected domain and SpriteKit playback tests passed on connected iPhone 16 Pro (iOS 26.6), including nonterminal descent and danger-line failure. |
+| #71 Extra Balls and Guide visibility on iPhone | Pass | 2026-08-26: Extra Balls physical UI test passed on connected iPhone 16 Pro; retained screenshot shows the `+3` launch banner, armed status, and differentiated helper balls. |
 | Bug-triage verdict | Pending | Complete the manual checks, file every reproducible finding, and classify severity. |
 
 ## Closure Conditions
