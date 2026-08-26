@@ -1,0 +1,31 @@
+{
+  "id": "prototype-022",
+  "title": "Chain Reaction",
+  "columns": 9,
+  "rows": 12,
+  "bricks": [
+    { "id": "bomb-left", "row": 4, "column": 2, "kind": "bomb", "hitPoints": 10 },
+    { "id": "bomb-right", "row": 4, "column": 6, "kind": "bomb", "hitPoints": 10 },
+    { "id": "mission-left", "row": 1, "column": 2, "kind": "mission", "hitPoints": 10 },
+    { "id": "mission-right", "row": 1, "column": 6, "kind": "mission", "hitPoints": 10 },
+    { "id": "fuse-center", "row": 5, "column": 4, "kind": "standard", "hitPoints": 30 }
+  ],
+  "availablePowerups": ["bomb", "rowClear", "precisionGuide", "extraBalls"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["bomb-left", "bomb-right", "mission-left", "mission-right"]
+  },
+  "starRules": {
+    "twoStarShotLimit": 5,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 4
+  },
+  "metadata": {
+    "intendedSolution": "Prime both separated fuses in order, then use their opened outer lanes to clear the matching mission bricks.",
+    "minimumKnownShotCount": 4,
+    "requiredMechanics": ["aiming", "missionObjective", "bombs"],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  }
+}

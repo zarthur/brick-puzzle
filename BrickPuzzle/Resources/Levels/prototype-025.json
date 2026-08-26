@@ -1,0 +1,40 @@
+{
+  "id": "prototype-025",
+  "title": "Master Circuit",
+  "columns": 9,
+  "rows": 13,
+  "bricks": [
+    { "id": "splitter-left", "row": 7, "column": 2, "kind": "splitter", "hitPoints": 10 },
+    { "id": "key-center", "row": 6, "column": 4, "kind": "key", "hitPoints": 10 },
+    { "id": "shield-right", "row": 5, "column": 6, "kind": "shield", "hitPoints": 10 },
+    { "id": "bomb-left", "row": 3, "column": 2, "kind": "bomb", "hitPoints": 10 },
+    { "id": "splitter-right", "row": 4, "column": 6, "kind": "splitter", "hitPoints": 10 },
+    { "id": "mission-crown", "row": 1, "column": 4, "kind": "mission", "hitPoints": 10 },
+    { "id": "buttress-left", "row": 5, "column": 3, "kind": "standard", "hitPoints": 30 },
+    { "id": "buttress-right", "row": 5, "column": 5, "kind": "standard", "hitPoints": 30 }
+  ],
+  "availablePowerups": ["extraBalls", "shieldBreaker", "bomb", "rowClear", "precisionGuide"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["splitter-left", "key-center", "shield-right", "bomb-left", "splitter-right", "mission-crown"]
+  },
+  "shieldLinks": [
+    { "shieldID": "shield-right", "protectedBrickIDs": ["bomb-left", "splitter-right", "mission-crown"] }
+  ],
+  "keyLinks": [
+    { "keyID": "key-center", "lockedBrickIDs": ["shield-right"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 7,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 6
+  },
+  "metadata": {
+    "intendedSolution": "Open the left branch, claim the center key, cross to the shield, bank back through the bomb, activate the second split, and finish the crown.",
+    "minimumKnownShotCount": 6,
+    "requiredMechanics": ["aiming", "missionObjective", "starScoring", "keyOrdering", "shields", "bombs", "splitters"],
+    "difficulty": "hard",
+    "validationStatus": "replayValidated"
+  }
+}

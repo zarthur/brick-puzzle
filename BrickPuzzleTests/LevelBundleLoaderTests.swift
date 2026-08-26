@@ -13,11 +13,49 @@ struct LevelBundleLoaderTests {
 
     @Test("Bundled catalog is deterministically ordered")
     func bundledCatalogOrder() throws {
-        #expect(try LevelBundleLoader().loadAllLevels().map(\.id) == [
-            "prototype-001", "prototype-002", "prototype-003", "prototype-004",
-            "prototype-005", "prototype-006", "prototype-007", "prototype-008",
-            "prototype-009", "prototype-010"
-        ])
+        let expectedIDs = (1...25).map { String(format: "prototype-%03d", $0) }
+
+        #expect(try LevelBundleLoader().loadAllLevels().map(\.id) == expectedIDs)
+    }
+
+    @Test("First expansion batch follows its difficulty and mechanic plan")
+    func firstExpansionBatchContract() throws {
+        let levels = try LevelBundleLoader().loadAllLevels().filter {
+            ("prototype-011"..."prototype-025").contains($0.id)
+        }
+        let difficultyCounts = Dictionary(grouping: levels, by: \.metadata.difficulty)
+            .mapValues(\.count)
+
+        #expect(levels.count == 15)
+        #expect(Set(levels.map(\.title)).count == levels.count)
+        #expect(difficultyCounts[.easy] == 8)
+        #expect(difficultyCounts[.medium] == 6)
+        #expect(difficultyCounts[.hard] == 1)
+        #expect(levels.allSatisfy { $0.metadata.validationStatus == .replayValidated })
+        #expect(levels.allSatisfy {
+            $0.metadata.minimumKnownShotCount == $0.starRules.threeStarShotLimit
+                && $0.starRules.threeStarRequiresNoPowerups
+        })
+        #expect(levels.allSatisfy { level in
+            !level.metadata.requiredMechanics.contains(.keyOrdering) || !level.keyLinks.isEmpty
+        })
+        #expect(levels.allSatisfy { level in
+            !level.metadata.requiredMechanics.contains(.shields) || !level.shieldLinks.isEmpty
+        })
+        #expect(levels.allSatisfy { level in
+            !level.metadata.requiredMechanics.contains(.bombs)
+                || level.bricks.contains { $0.kind == .bomb }
+        })
+        #expect(levels.allSatisfy { level in
+            !level.metadata.requiredMechanics.contains(.splitters)
+                || level.bricks.contains { $0.kind == .splitter }
+        })
+
+        for mechanic in [
+            LevelMechanic.keyOrdering, .shields, .bombs, .splitters
+        ] {
+            #expect(levels.filter { $0.metadata.requiredMechanics.contains(mechanic) }.count >= 6)
+        }
     }
 
     @Test("Elegant challenge levels combine mechanics and offer assisted routes")

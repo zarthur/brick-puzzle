@@ -10,11 +10,9 @@ struct ReplayRunnerTests {
         let replays = try ReplayBundleLoader().loadAllReplays()
         let replayLevelIDs = Set(replays.map(\.levelID))
 
-        #expect(levels.map(\.id) == [
-            "prototype-001", "prototype-002", "prototype-003", "prototype-004",
-            "prototype-005", "prototype-006", "prototype-007", "prototype-008",
-            "prototype-009", "prototype-010"
-        ])
+        let expectedIDs = (1...25).map { String(format: "prototype-%03d", $0) }
+
+        #expect(levels.map(\.id) == expectedIDs)
         #expect(replayLevelIDs == Set(levels.map(\.id)))
 
         for replay in replays {

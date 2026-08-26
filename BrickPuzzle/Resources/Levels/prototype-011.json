@@ -1,0 +1,33 @@
+{
+  "id": "prototype-011",
+  "title": "Side Key",
+  "columns": 7,
+  "rows": 10,
+  "bricks": [
+    { "id": "key-left", "row": 4, "column": 1, "kind": "key", "hitPoints": 10 },
+    { "id": "mission-center", "row": 1, "column": 3, "kind": "mission", "hitPoints": 10 },
+    { "id": "rail-left", "row": 3, "column": 2, "kind": "standard", "hitPoints": 20 },
+    { "id": "rail-right", "row": 3, "column": 4, "kind": "standard", "hitPoints": 20 }
+  ],
+  "availablePowerups": ["precisionGuide", "extraBalls", "rowClear"],
+  "maxPowerupLoadoutSize": 1,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["key-left", "mission-center"]
+  },
+  "keyLinks": [
+    { "keyID": "key-left", "lockedBrickIDs": ["mission-center"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 3,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 2
+  },
+  "metadata": {
+    "intendedSolution": "Bank into the exposed side key, then return through the center lane to clear the unlocked mission brick.",
+    "minimumKnownShotCount": 2,
+    "requiredMechanics": ["aiming", "missionObjective", "keyOrdering"],
+    "difficulty": "easy",
+    "validationStatus": "replayValidated"
+  }
+}

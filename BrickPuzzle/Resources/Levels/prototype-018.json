@@ -1,0 +1,34 @@
+{
+  "id": "prototype-018",
+  "title": "Powder Keyhole",
+  "columns": 7,
+  "rows": 11,
+  "bricks": [
+    { "id": "key-right", "row": 5, "column": 5, "kind": "key", "hitPoints": 10 },
+    { "id": "bomb-center", "row": 3, "column": 3, "kind": "bomb", "hitPoints": 10 },
+    { "id": "mission-left", "row": 1, "column": 1, "kind": "mission", "hitPoints": 10 },
+    { "id": "wall-left", "row": 4, "column": 2, "kind": "standard", "hitPoints": 20 },
+    { "id": "wall-right", "row": 4, "column": 4, "kind": "standard", "hitPoints": 20 }
+  ],
+  "availablePowerups": ["bomb", "precisionGuide", "extraBalls", "rowClear"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["key-right", "bomb-center", "mission-left"]
+  },
+  "keyLinks": [
+    { "keyID": "key-right", "lockedBrickIDs": ["bomb-center"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 4,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 3
+  },
+  "metadata": {
+    "intendedSolution": "Bank right for the key, return to the unlocked center bomb, then follow the opened left lane to the mission brick.",
+    "minimumKnownShotCount": 3,
+    "requiredMechanics": ["aiming", "missionObjective", "keyOrdering", "bombs"],
+    "difficulty": "easy",
+    "validationStatus": "replayValidated"
+  }
+}

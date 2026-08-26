@@ -1,0 +1,38 @@
+{
+  "id": "prototype-019",
+  "title": "Vault Fuse",
+  "columns": 8,
+  "rows": 12,
+  "bricks": [
+    { "id": "key-left", "row": 6, "column": 1, "kind": "key", "hitPoints": 10 },
+    { "id": "shield-center", "row": 4, "column": 4, "kind": "shield", "hitPoints": 10 },
+    { "id": "bomb-center", "row": 3, "column": 4, "kind": "bomb", "hitPoints": 10 },
+    { "id": "mission-center", "row": 1, "column": 4, "kind": "mission", "hitPoints": 10 },
+    { "id": "buttress-left", "row": 5, "column": 3, "kind": "standard", "hitPoints": 30 },
+    { "id": "buttress-right", "row": 5, "column": 5, "kind": "standard", "hitPoints": 30 }
+  ],
+  "availablePowerups": ["bomb", "shieldBreaker", "precisionGuide", "extraBalls", "rowClear"],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": ["key-left", "shield-center", "bomb-center", "mission-center"]
+  },
+  "shieldLinks": [
+    { "shieldID": "shield-center", "protectedBrickIDs": ["bomb-center", "mission-center"] }
+  ],
+  "keyLinks": [
+    { "keyID": "key-left", "lockedBrickIDs": ["shield-center"] }
+  ],
+  "starRules": {
+    "twoStarShotLimit": 5,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 4
+  },
+  "metadata": {
+    "intendedSolution": "Unlock the center shield from the left, peel it away, trigger the exposed fuse, and finish through the opened vault lane.",
+    "minimumKnownShotCount": 4,
+    "requiredMechanics": ["aiming", "missionObjective", "keyOrdering", "shields", "bombs"],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  }
+}
