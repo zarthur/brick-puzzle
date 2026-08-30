@@ -1,0 +1,98 @@
+{
+  "id": "prototype-048",
+  "title": "Precision Powder Route",
+  "columns": 7,
+  "rows": 11,
+  "bricks": [
+    {
+      "id": "splitter-center",
+      "row": 4,
+      "column": 3,
+      "kind": "splitter",
+      "hitPoints": 10
+    },
+    {
+      "id": "bomb-left",
+      "row": 2,
+      "column": 2,
+      "kind": "bomb",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-left",
+      "row": 1,
+      "column": 1,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-right",
+      "row": 1,
+      "column": 5,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "guide-right",
+      "row": 3,
+      "column": 4,
+      "kind": "standard",
+      "hitPoints": 20
+    },
+    {
+      "id": "key-route",
+      "row": 5,
+      "column": 5,
+      "kind": "key",
+      "hitPoints": 10
+    }
+  ],
+  "availablePowerups": [
+    "extraBalls",
+    "shieldBreaker",
+    "bomb",
+    "rowClear",
+    "precisionGuide"
+  ],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": [
+      "key-route",
+      "splitter-center",
+      "bomb-left",
+      "mission-left",
+      "mission-right"
+    ]
+  },
+  "starRules": {
+    "twoStarShotLimit": 6,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 5
+  },
+  "metadata": {
+    "intendedSolution": "Open the split, collect the key, cross the unlocked gate, trigger the bomb, and finish the exposed mission.",
+    "minimumKnownShotCount": 5,
+    "requiredMechanics": [
+      "aiming",
+      "missionObjective",
+      "keyOrdering",
+      "bombs",
+      "splitters"
+    ],
+    "difficulty": "hard",
+    "validationStatus": "replayValidated"
+  },
+  "keyLinks": [
+    {
+      "keyID": "key-route",
+      "lockedBrickIDs": [
+        "splitter-center",
+        "bomb-left",
+        "mission-left",
+        "mission-right"
+      ]
+    }
+  ],
+  "shieldLinks": []
+}

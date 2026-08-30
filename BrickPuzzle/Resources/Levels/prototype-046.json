@@ -1,0 +1,79 @@
+{
+  "id": "prototype-046",
+  "title": "Forked Charge",
+  "columns": 7,
+  "rows": 11,
+  "bricks": [
+    {
+      "id": "splitter-center",
+      "row": 5,
+      "column": 3,
+      "kind": "splitter",
+      "hitPoints": 10
+    },
+    {
+      "id": "bomb-left",
+      "row": 3,
+      "column": 4,
+      "kind": "bomb",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-left",
+      "row": 2,
+      "column": 5,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "mission-right",
+      "row": 2,
+      "column": 1,
+      "kind": "mission",
+      "hitPoints": 10
+    },
+    {
+      "id": "guide-right",
+      "row": 4,
+      "column": 2,
+      "kind": "standard",
+      "hitPoints": 20
+    }
+  ],
+  "availablePowerups": [
+    "extraBalls",
+    "shieldBreaker",
+    "bomb",
+    "rowClear",
+    "precisionGuide"
+  ],
+  "maxPowerupLoadoutSize": 2,
+  "objective": {
+    "kind": "clearMissionBricks",
+    "orderedBrickIDs": [
+      "splitter-center",
+      "bomb-left",
+      "mission-left",
+      "mission-right"
+    ]
+  },
+  "starRules": {
+    "twoStarShotLimit": 4,
+    "threeStarRequiresNoPowerups": true,
+    "threeStarShotLimit": 3
+  },
+  "metadata": {
+    "intendedSolution": "Open the splitter route, trigger the bomb chain, then use the remaining bank for cleanup.",
+    "minimumKnownShotCount": 3,
+    "requiredMechanics": [
+      "aiming",
+      "missionObjective",
+      "bombs",
+      "splitters"
+    ],
+    "difficulty": "medium",
+    "validationStatus": "replayValidated"
+  },
+  "keyLinks": [],
+  "shieldLinks": []
+}

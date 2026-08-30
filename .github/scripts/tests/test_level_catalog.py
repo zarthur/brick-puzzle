@@ -170,6 +170,22 @@ class LevelCatalogTests(unittest.TestCase):
 
         self.assertIn("contiguous sequence", str(context.exception))
 
+    def test_level_titles_must_be_unique(self) -> None:
+        second_level = valid_level("prototype-002")
+        with CatalogFixture() as fixture:
+            fixture.write_level(valid_level())
+            fixture.write_replay(valid_replay())
+            fixture.write_level(second_level)
+            fixture.write_replay(valid_replay("prototype-002"))
+
+            with self.assertRaises(level_catalog.CatalogValidationError) as context:
+                level_catalog.validate_catalog(fixture.levels, fixture.replays)
+
+        self.assertIn(
+            "level titles must be unique: Fixture Level",
+            str(context.exception),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

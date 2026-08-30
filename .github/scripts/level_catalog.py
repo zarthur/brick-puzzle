@@ -409,6 +409,15 @@ def validate_catalog(levels_directory: Path, replays_directory: Path) -> Catalog
     if numeric_ids and numeric_ids != list(range(1, numeric_ids[-1] + 1)):
         errors.append("level ids must form a contiguous sequence beginning at prototype-001")
 
+    title_counts = Counter(
+        record.title.strip()
+        for record in records.values()
+        if record.title.strip()
+    )
+    duplicate_titles = sorted(title for title, count in title_counts.items() if count > 1)
+    if duplicate_titles:
+        errors.append(f"level titles must be unique: {', '.join(duplicate_titles)}")
+
     replay_level_ids: set[str] = set()
     for path in sorted(replays_directory.glob("*.json")):
         replay = load_json(path, errors)
